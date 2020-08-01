@@ -1,0 +1,115 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="NewFilter1">
+      <UniqueIdentifier>{0738a724-d84b-46b3-974d-fa09272b4cdd}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="chipmunk.c">
+      <Filter>NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="cpArbiter.c">
+      <Filter>NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="cpArray.c">
+      <Filter>NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="cpBBTree.c">
+      <Filter>NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="cpBody.c">
+      <Filter>NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="cpCollision.c">
+      <Filter>NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="cpConstraint.c">
+      <Filter>NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="cpDampedRotarySpring.c">
+      <Filter>NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="cpDampedSpring.c">
+      <Filter>NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="cpGearJoint.c">
+      <Filter>NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="cpGrooveJoint.c">
+      <Filter>NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="cpHashSet.c">
+      <Filter>NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="cpHastySpace.c">
+      <Filter>NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="cpMarch.c">
+      <Filter>NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="cpPinJoint.c">
+      <Filter>NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="cpPivotJoint.c">
+      <Filter>NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="cpPolyline.c">
+      <Filter>NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="cpPolyShape.c">
+      <Filter>NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="cpRatchetJoint.c">
+      <Filter>NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="cpRobust.c">
+      <Filter>NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="cpRotaryLimitJoint.c">
+      <Filter>NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="cpShape.c">
+      <Filter>NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="cpSimpleMotor.c">
+      <Filter>NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="cpSlideJoint.c">
+      <Filter>NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="cpSpace.c">
+      <Filter>NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="cpSpaceComponent.c">
+      <Filter>NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="cpSpaceDebug.c">
+      <Filter>NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="cpSpaceHash.c">
+      <Filter>NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="cpSpaceQuery.c">
+      <Filter>NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="cpSpaceStep.c">
+      <Filter>NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="cpSpatialIndex.c">
+      <Filter>NewFilter1</Filter>
+    </ClCompile>
+    <ClCompile Include="cpSweep1D.c">
+      <Filter>NewFilter1</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="prime.h">
+      <Filter>NewFilter1</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
