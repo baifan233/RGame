@@ -91,6 +91,8 @@ struct UIInputStruct
 	vector<WPARAM>* wParam = 0;
 	RSKEYSTATE* rsKeyState = 0;
 };
+
+
 struct TextStruct
 {
 	D2D1_RECT_F rect = { 0.0f };
@@ -101,7 +103,11 @@ class RControls
 {
 public:
 	RControls() {}
+	void AddColor(D2D1_COLOR_F color) { colors.push_back(color); }
+	void SetRect(D2D1_RECT_F rect) { this->rect = rect; }
+	void SetTransFormTime(int t) { this->transformTime = t; }
 protected:
+	int transformTime = 0;
 	float opacity = 0.0f;
 	D2D1_RECT_F rect = { 0.0f };
 	vector<ID2D1Bitmap**> bitmaps;
@@ -115,7 +121,6 @@ public:
 protected:
 	RButtonState rButtonState = RButtonState::Normal;
 	D2D1_COLOR_F ButtonColor = { 0.0f };
-	int transformTime = 0;
 };
 static string DeleteUnnecessaryChar(string b2)
 {
@@ -178,35 +183,65 @@ static vector<string> split(string str, string pattern)
 	}
 	return result;
 }
+struct RControl
+{
+	RControls* control = nullptr;
+	string id = 0;
+};
 struct UIPAGE
 {
-	vector<RControls*> controls;
+	vector<RControl> controls;
 };
 static UIPAGE uiReadPage(string s)
 {
 	int f1 = -1;
 	int f2 = -1;
+	int f3 = -1;
+	UIPAGE uipg;
+	f1 = s.find("RButton");
+	string stemp = "";
+	string id = "";
+
 	char temp[24];
 	string temp2 = "";
 	vector<string>datas;
 	float* ftemp = new float[4];
-	for (size_t i = 0; i < 5; i++)
+	RButton* rb = nullptr;
+	if (f1 != -1)
 	{
-		sprintf_s(temp, "Color%d\0", i);
-		f1 = s.find(temp);
-		if (f1 != -1)
+		f2 = s.find("{", f1);
+		f3 = s.find("}#endRButton");
+		id = s.substr(f1 + 7, f2 - f1 - 7);
+		stemp = s.substr(f2 + 1, f3 - f2 - 1);
+		rb = new RButton();
+		for (size_t i = 0; i < 6; i++)
 		{
-			f2 = s.find("}", f1);
-			temp2 = s.substr(f1 + strlen(temp) + 2, f2 - f1 - strlen(temp) - 2);
-			datas = split(temp2, ",");
-			for (size_t i = 0; i < 4; i++)
+			sprintf_s(temp, "Color%d\0", i);
+			f1 = stemp.find(temp);
+			if (f1 != -1)
 			{
-				ftemp[i] = (float)atof(datas[i].c_str());
+				f2 = stemp.find("}", f1);
+				temp2 = stemp.substr(f1 + strlen(temp) + 2, f2 - f1 - strlen(temp) - 2);
+				datas = split(temp2, ",");
+				for (size_t i = 0; i < 4; i++)
+				{
+					ftemp[i] = (float)atof(datas[i].c_str());
+				}
+				rb->AddColor({ ftemp[0],ftemp[1],ftemp[2],ftemp[3] });
 			}
 
 		}
+		f1 = stemp.find("transformTime");
+		if (f1 != -1)
+		{
+			f2 = stemp.find(",", f1);
+			rb->SetTransFormTime(atoi(stemp.substr(f1 + 14, f2 - 14).c_str()));
+		}
 	}
+	delete[] ftemp; ftemp = nullptr;
 
+
+	return uipg;
 }
 class UI
 {
@@ -227,7 +262,7 @@ public:
 		b2 = DeleteUnnecessaryChar(b2);
 
 		uipage.push_back(uiReadPage(b2));
-		
+
 		return;
 	}
 	UI();

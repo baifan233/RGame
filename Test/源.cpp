@@ -258,41 +258,89 @@
 //	system("pause");
 //	return 0;
 //}
+
+//
+//#include<Windows.h>
+//#include<iostream>
+//using namespace std;
+//class Base
+//{
+//public:
+//	Base() {};
+//	virtual void Test() { printf("Base class here\n"); };
+//	void work() { Test(); }
+//};
+//class child:public Base
+//{
+//public:
+//	virtual void Test()
+//	{
+//		printf("child class here\n");
+//	}
+//};
+//class child2:public Base
+//{
+//public:
+//	virtual void Test()
+//	{
+//		printf("child2 class here\n");
+//	}
+//};
+//int main()
+//{
+//
+//	char a = 12700000;
+//	int b = sizeof(a);
+//	Base *c1 = new child();
+//	c1->work();
+//	
+//	Base* c2 = new child2();
+//	c2->work();
+//	return 0;
+//}
+
 #include<Windows.h>
 #include<iostream>
+#include<vector>
+#include<map>
 using namespace std;
-class Base
+map<int, string> m1;
+struct s1
 {
-public:
-	Base() {};
-	virtual void Test() { printf("Base class here\n"); };
-	void work() { Test(); }
+	int i;
+	string s;
 };
-class child:public Base
+vector<s1> v1;
+void TestMap()
 {
-public:
-	virtual void Test()
+	map<int, string>::const_iterator f1 = m1.find(m1.size()-1);
+	printf("map  :%d %s\n",f1->first,f1->second.c_str());
+}
+void TestVect()
+{
+	for (size_t i = 0; i < v1.size(); i++)
 	{
-		printf("child class here\n");
+		if (v1[i].i == v1.size()-1)
+			printf("vector:  %d  %s\n",v1[i].i,v1[i].s.c_str());
 	}
-};
-class child2:public Base
-{
-public:
-	virtual void Test()
-	{
-		printf("child2 class here\n");
-	}
-};
+}
 int main()
 {
-
-	char a = 12700000;
-	int b = sizeof(a);
-	Base *c1 = new child();
-	c1->work();
+	char temp[24];
+	for (size_t i = 0; i < 1000000; i++)
+	{
+		sprintf_s(temp,"num%d",i);
+		m1.insert({ (int)i,temp});
+		v1.push_back({(int)i,temp});
+	}
+	DWORD start = GetTickCount64();
+	TestMap();
+	DWORD end = GetTickCount64();
+	printf("map test time: %d\n",end-start);
+	start = GetTickCount64();
+	TestVect();
+	end = GetTickCount64();
+	printf("vect test time: %d\n",end-start);
 	
-	Base* c2 = new child2();
-	c2->work();
 	return 0;
 }
