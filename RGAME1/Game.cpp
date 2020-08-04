@@ -50,8 +50,7 @@ void Game::Init(GDevices* gDevices)
 
 	resourceManager.Init(gDevices);
 	world.Init(gDevices, &resourceManager);
-	
-	ui.LoadFromFile();
+		
 
 	resourceManager.CreateTexture(L"bitmap2.png", 0);
 	ui.Init(gDevices, &world);
@@ -78,6 +77,7 @@ void Game::Init(GDevices* gDevices)
 	uis.wParam = devices->GetCharParam();
 	ui.SetUIS(uis);
 
+	ui.LoadFromFile();
 	//ui.CreateRenderThread();
 }
 static bool bdraw = true;

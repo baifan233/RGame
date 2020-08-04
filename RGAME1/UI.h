@@ -7,6 +7,7 @@ enum class RButtonState
 	Normal = 0,
 	OnClick = 1,
 	MouseOn = 2,
+	ClickUp = 3
 };
 enum class RControlType
 {
@@ -92,7 +93,9 @@ struct UIInputStruct
 
 struct TextStruct
 {
-	D2D1_RECT_F rect = { 0.0f };
+	string id;
+	//color
+	//D2D1_RECT_F rect = { 0.0f };
 	const wchar_t* text = NULL;
 };
 
@@ -186,7 +189,8 @@ static vector<string> definedFuncNames =
 	"ColorTurnTo",
 	""
 };
-static UIPAGE uiReadPage(string s);
+class UI;
+static UIPAGE uiReadPage(string s, UI* ui);
 
 static bool PtInControl(D2D1_RECT_F rect, float dpi, POINT pt)
 {
@@ -217,7 +221,7 @@ public:
 		b2 = DeleteNote(b2);
 		b2 = DeleteUnnecessaryChar(b2);
 
-		uipage.push_back(uiReadPage(b2));
+		uipage.push_back(uiReadPage(b2, this));
 
 		return;
 	}
@@ -297,11 +301,19 @@ public:
 class RControls
 {
 public:
+	ID2D1RoundedRectangleGeometry* geo;
 	void SetOpacity(float o) { this->opacity = o; }
 	RControls() {}
 	void AddFloat4(D2D1_COLOR_F float4, string id) { float4s.push_back({ float4 ,id }); }
-	void SetRect(D2D1_RECT_F rect) { this->rect = rect; }
-	void SetTransFormTime(int t) { this->transformTime = t; }
+
+	void SetRect(D2D1_RECT_F rect) { this->rect.rect = rect; }
+
+	void Init(UI* ui, float roundX, float roundY, int t)
+	{
+		this->transformTime = t;
+		this->rect.radiusX = roundX; this->rect.radiusY = roundY;
+		ui->devices->g_GetFactory()->CreateRoundedRectangleGeometry(rect, &geo);
+	}
 	vector<ActionStruct> mouseOn;
 	vector<ActionStruct> onClick;
 	vector<ActionStruct> normal;
@@ -314,17 +326,31 @@ protected:
 
 	int transformTime = 0;
 	float opacity = 0.0f;
-	D2D1_RECT_F rect = { 0.0f };
+	D2D1_ROUNDED_RECT rect = { 0 };
 	vector<ID2D1Bitmap**> bitmaps;
 	vector<TextStruct>texts;
 
 };
+static bool PtInGeometry(ID2D1Geometry* pGeometry, D2D1_MATRIX_3X2_F& transMatrix, D2D1_POINT_2F pt)
+{
+	BOOL contain = FALSE;
+	HRESULT hr = S_OK;
+
+	hr = pGeometry->FillContainsPoint(pt, &transMatrix, &contain);
+	if (SUCCEEDED(hr) && contain)
+	{
+		return true;
+	}
+
+	return false;
+}
+
 class RButton :public RControls
 {
 public:
 	RButton() {}
 	virtual void Draw(UI* ui)
-	{		
+	{
 		ID2D1DeviceContext3* context = ui->devices->g_GetD2DRen();
 		POINT mpoint = { *ui->UIS.mpt->x,*ui->UIS.mpt->y };
 		DIMOUSESTATE mouseState = ui->devices->GetMouseState();
@@ -336,7 +362,12 @@ public:
 		}
 		else  //如果鼠标在窗口内 判断指针是否在控件矩形内
 		{
-			result = PtInControl(rect, ui->dpi, mpoint);
+			D2D1_MATRIX_3X2_F matrix;
+			ui->devices->g_GetD2DRen()->GetTransform(&matrix);
+			if (geo)
+			{
+				result = PtInGeometry(geo, matrix, { (float)mpoint.x,(float)mpoint.y });
+			}
 		}
 		if (!result)
 		{
@@ -348,16 +379,20 @@ public:
 			{
 				rButtonState = RButtonState::MouseOn;
 			}
-			else
+			else if (mouseState.rgbButtons[0] == RSKeyDown)
 			{
 				rButtonState = RButtonState::OnClick;
 			}
+			else
+			{
+				rButtonState = RButtonState::ClickUp;
+			}
 
-		}		
+		}
 
 		if (rButtonState == RButtonState::Normal)
 		{
-			DoFunc(normal, ui);			
+			DoFunc(normal, ui);
 		}
 		else if (rButtonState == RButtonState::MouseOn)
 		{
@@ -366,13 +401,19 @@ public:
 		else if (rButtonState == RButtonState::OnClick)
 		{
 			DoFunc(onClick, ui);
-		}//else if(rButtonState==)
+		}
+		else if (rButtonState == RButtonState::ClickUp)
+		{
+			DoFunc(clickUp,ui);
+		}
 		ui->p_bControlsBrush->SetColor(this->controlColor);//切换画刷颜色至按钮颜色
 		ui->p_bControlsBrush->SetOpacity(opacity);//切换画刷颜色至按钮颜色
 		controlColor.a = 1.0f;
-		context->FillRectangle(rect, ui->p_bControlsBrush);//画矩形		
+		context->FillRoundedRectangle(rect, ui->p_bControlsBrush);//画矩形		
+		ui->p_bControlsBrush->SetColor({1.0f,1.0f,1.0f,0.8f});//切换画刷颜色至按钮颜色
+		context->DrawRoundedRectangle(rect, ui->p_bControlsBrush);//画矩形		
 		ui->p_bControlsBrush->SetColor({ 1.0f,1.0f,1.0f,1.0f });//
-		context->DrawText(L"123", lstrlenW(L"123"), ui->m_pText, rect, ui->p_bControlsBrush);		
+		context->DrawText(L"123", lstrlenW(L"123"), ui->m_pText, rect.rect, ui->p_bControlsBrush);
 	}
 
 	void DoFunc(vector<ActionStruct> as, UI* ui)
@@ -392,21 +433,21 @@ public:
 					if (0 == stemp.compare(ui->uipage[0].controls[j].id))
 					{
 						ctemp = *(D2D1_COLOR_F*)as[i].param[0];
-						ftemp2 = (float)transformTime / 1000.0f;    ftemp2 =1.0f/ ftemp2;
+						ftemp2 = (float)transformTime / 1000.0f;    ftemp2 = 1.0f / ftemp2;
 
 
 						ftemp = ctemp.r - ui->uipage[0].controls[j].control->controlColor.r;
-						ftemp = ftemp/60.0f*ftemp2;						
-						
+						ftemp = ftemp / 60.0f * ftemp2;
+
 						ui->uipage[0].controls[j].control->controlColor.r += ftemp;
 
 						ftemp = ctemp.g - ui->uipage[0].controls[j].control->controlColor.g;
 						ftemp = ftemp / 60.0f * ftemp2;
 						ui->uipage[0].controls[j].control->controlColor.g += ftemp;
-						
+
 						ftemp = ctemp.b - ui->uipage[0].controls[j].control->controlColor.b;
 						ftemp = ftemp / 60.0f * ftemp2;
-						ui->uipage[0].controls[j].control->controlColor.b +=ftemp;
+						ui->uipage[0].controls[j].control->controlColor.b += ftemp;
 					}
 				}
 				break;
@@ -418,13 +459,13 @@ public:
 
 
 	}
-	
+
 protected:
 
 	RButtonState rButtonState = RButtonState::Normal;
 
 };
-static UIPAGE uiReadPage(string s)
+static UIPAGE uiReadPage(string s, UI* ui)
 {
 	int f1 = -1;
 	int f2 = -1;
@@ -442,6 +483,9 @@ static UIPAGE uiReadPage(string s)
 	RButton* rb = nullptr;
 	int ff1 = 0;
 	int ff2 = 0;
+	int transFormTime = -1;
+	float roundX = -1.0f;
+	float roundY = -1.0f;
 	do
 	{
 		f1 = s.find("RButton");
@@ -457,18 +501,16 @@ static UIPAGE uiReadPage(string s)
 			datas = split(stemp, ";");
 			for (size_t i = 0; i < datas.size(); i++)
 			{
-				f1 = datas[i].find("transformTime");
-				if (f1 != -1)
+				if (transFormTime == -1)
 				{
-					f2 = datas[i].find("=", f1);
-					rb->SetTransFormTime(atoi(datas[i].substr(f2 + 1, f2 - f1 - 1).c_str()));
+					f1 = datas[i].find("transformTime");
+					if (f1 != -1)
+					{
+						f2 = datas[i].find("=", f1);
+						transFormTime = atoi(datas[i].substr(f2 + 1, f2 - f1 - 1).c_str());
+					}
 				}
-				f1 = datas[i].find("opacity");
-				if (f1 != -1)
-				{
-					f2 = datas[i].find("=", f1);
-					rb->SetOpacity(atof(datas[i].substr(f2 + 1, f2 - f1 - 1).c_str()));
-				}
+
 				f1 = datas[i].find("rect");
 				if (f1 != -1)
 				{
@@ -481,6 +523,33 @@ static UIPAGE uiReadPage(string s)
 					}
 					rb->SetRect({ ftemp[0],ftemp[1] ,ftemp[2] ,ftemp[3] });
 					datas2.~vector();
+				}
+				if (roundX == -1.0f)
+				{
+					f1 = datas[i].find("roundX");
+					if (f1 != -1)
+					{
+						f2 = datas[i].find("=", f1);
+						roundX = atof(datas[i].substr(f2 + 1, f2 - f1 - 1).c_str());
+					}
+				}
+				if (roundY == -1.0f)
+				{
+					f1 = datas[i].find("roundY");
+					if (f1 != -1)
+					{
+						f2 = datas[i].find("=", f1);
+						roundY = atof(datas[i].substr(f2 + 1, f2 - f1 - 1).c_str());						
+					}
+				}
+
+
+
+				f1 = datas[i].find("opacity");
+				if (f1 != -1)
+				{
+					f2 = datas[i].find("=", f1);
+					rb->SetOpacity(atof(datas[i].substr(f2 + 1, f2 - f1 - 1).c_str()));
 				}
 
 				f1 = datas[i].find("float4");
@@ -505,7 +574,10 @@ static UIPAGE uiReadPage(string s)
 				}
 
 			}
-			datas.~vector();			
+			datas.~vector();
+			rb->Init(ui,roundX,roundY,transFormTime);
+			roundX = -1.0f; roundY = -1.0f;
+			transFormTime = -1;						
 			uipg.controls.push_back({ rb,id });
 			s.erase(ff1, ff2 - ff1);
 		}
