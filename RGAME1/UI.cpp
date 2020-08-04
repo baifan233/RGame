@@ -109,17 +109,9 @@ D2D1_COLOR_F TurnDarkOrShallow(D2D1_COLOR_F color, bool TurnDark, float Cnum)
 	return color;
 }
 
-bool PtInControl(D2D1_RECT_F rect, float dpi, POINT pt)
-{
-	RECT rect2 = { 0 };
-	rect2.left = (LONG)(rect.left * dpi);
-	rect2.right = (LONG)(rect.right * dpi);
-	rect2.top = (LONG)(rect.top * dpi);
-	rect2.bottom = (LONG)(rect.bottom * dpi);
-	bool pirReuslt = PtInRect(&rect2, pt);
-	if (!pirReuslt)return false;//如果不在矩形内
-	else return true;
-}
+
+
+
 
 
 void UI::Draw()
@@ -127,6 +119,12 @@ void UI::Draw()
 
 	UI* ui = this;
 	float opacityTemp = 0.0f;
+	for (size_t i = 0; i < this->uipage[0].controls.size(); i++)
+	{
+		uipage[0].controls[i].control->Draw(ui);
+			
+	}
+	/*
 	if (ui->pageCurrent < 20)
 	{
 		ID2D1DeviceContext3* context = nullptr;
@@ -134,7 +132,7 @@ void UI::Draw()
 		if (context)
 		{
 			p_bControlsBrush->SetColor(ui->pages[ui->pageCurrent].backGroundColor);
-			context->FillRectangle({0.0f,0.0f,(float)ui->screenWidth,(float)ui->screenHeight},ui->p_bControlsBrush);
+			context->FillRectangle({ 0.0f,0.0f,(float)ui->screenWidth,(float)ui->screenHeight }, ui->p_bControlsBrush);
 
 			if (ui->pages[ui->pageCurrent].bitmap)
 			{
@@ -150,21 +148,7 @@ void UI::Draw()
 			POINT mpoint = { *ui->UIS.mpt->x,*ui->UIS.mpt->y };
 			DIMOUSESTATE mouseState = devices->GetMouseState();
 			for (size_t i = 0; i < ui->pages[ui->pageCurrent].buttonsAddr.size(); i++)
-			{
-				/*if (inp_mouseState.rgbButtons[1] == RSKeyDown)
-				{
-					if (true)
-					{
-
-						widthtemp = pages[pageCurrent].buttonsAddr[i]->rect.right - pages[pageCurrent].buttonsAddr[i]->rect.left;
-						pages[pageCurrent].buttonsAddr[i]->rect.left = pt.x;
-						pages[pageCurrent].buttonsAddr[i]->rect.right = pt.x + widthtemp;
-						widthtemp = pages[pageCurrent].buttonsAddr[i]->rect.bottom - pages[pageCurrent].buttonsAddr[i]->rect.top;
-						pages[pageCurrent].buttonsAddr[i]->rect.top = pt.y;
-						pages[pageCurrent].buttonsAddr[i]->rect.bottom = pt.y + widthtemp;
-
-					}
-				}*/
+			{				
 
 				if (ui->pages[ui->pageCurrent].buttonsAddr[i] != nullptr)
 				{
@@ -224,9 +208,9 @@ void UI::Draw()
 						{
 							ui->pages[ui->pageCurrent].buttonsAddr[i]->RbuttonState = RButtonState::Normal;
 							if (nullptr != ui->pages[ui->pageCurrent].buttonsAddr[i]->oc)
-								ui->pages[ui->pageCurrent].buttonsAddr[i]->oc(ui->world, ui->devices,ui->pages[ui->pageCurrent].buttonsAddr[i]);
+								ui->pages[ui->pageCurrent].buttonsAddr[i]->oc(ui->world, ui->devices, ui->pages[ui->pageCurrent].buttonsAddr[i]);
 						}
-						
+
 
 						ui->p_bControlsBrush->SetColor(ui->pages[ui->pageCurrent].buttonsAddr[i]->OnClickcolor);
 						context->FillRectangle(ui->pages[ui->pageCurrent].buttonsAddr[i]->rect, ui->p_bControlsBrush);
@@ -244,218 +228,9 @@ void UI::Draw()
 
 
 
-			D2D1_POINT_2F point0 = { 0 };
-			D2D1_POINT_2F point1 = { 0 };
-			int slipWidth = 0;
-			int slipHeight = 0;
-			float value = 0;
-			int sliplong = 0;
-			int stemp = 0;
-			for (size_t i = 0; i < ui->pages[ui->pageCurrent].slipsAddr.size(); i++)
-			{
-				if (*ui->UIS.mpt->x == -1 || *ui->UIS.mpt->y == -1)
-					ui->pages[ui->pageCurrent].slipsAddr[i]->MouseDown = false;
-				slipHeight = (int)(ui->pages[ui->pageCurrent].slipsAddr[i]->rect.bottom - ui->pages[ui->pageCurrent].slipsAddr[i]->rect.top);
-				slipWidth = ui->pages[ui->pageCurrent].slipsAddr[i]->Width;
-				point0.x = ui->pages[ui->pageCurrent].slipsAddr[i]->rect.left;
-				point0.y = ui->pages[ui->pageCurrent].slipsAddr[i]->rect.top + slipHeight / 2;
-
-				point1.x = ui->pages[ui->pageCurrent].slipsAddr[i]->rect.right;
-				point1.y = point0.y;
-
-				ui->p_bControlsBrush->SetColor(ui->pages[ui->pageCurrent].slipsAddr[i]->color);
-				context->DrawLine(point0, point1, ui->p_bControlsBrush);
-				result = PtInControl(ui->pages[ui->pageCurrent].slipsAddr[i]->rect, ui->dpi, mpoint);
-
-				if (!result && !ui->pages[ui->pageCurrent].slipsAddr[i]->MouseDown)
-				{
-					//如果鼠标不在slip内 不变色
-				}
-				else if (!result && ui->pages[ui->pageCurrent].slipsAddr[i]->MouseDown)
-				{
-					if (mouseState.rgbButtons[0] == RSKey0)
-						ui->pages[ui->pageCurrent].slipsAddr[i]->MouseDown = false;
-					if (*ui->UIS.mpt->x < ui->pages[ui->pageCurrent].slipsAddr[i]->rect.left)
-					{
-						ui->pages[ui->pageCurrent].slipsAddr[i]->value = 0;
-						ui->pages[ui->pageCurrent].slipsAddr[i]->rect2.left = ui->pages[ui->pageCurrent].slipsAddr[i]->rect.left;
-						ui->pages[ui->pageCurrent].slipsAddr[i]->rect2.right = ui->pages[ui->pageCurrent].slipsAddr[i]->Width + ui->pages[ui->pageCurrent].slipsAddr[i]->rect.left;
-					}
-					else if (*ui->UIS.mpt->x > ui->pages[ui->pageCurrent].slipsAddr[i]->rect.right)
-					{
-						ui->pages[ui->pageCurrent].slipsAddr[i]->value = 100;
-						ui->pages[ui->pageCurrent].slipsAddr[i]->rect2.left = ui->pages[ui->pageCurrent].slipsAddr[i]->rect.right - ui->pages[ui->pageCurrent].slipsAddr[i]->Width;
-						ui->pages[ui->pageCurrent].slipsAddr[i]->rect2.right = ui->pages[ui->pageCurrent].slipsAddr[i]->rect.right;
-					}
-				}
-				else
-				{
-					if (mouseState.rgbButtons[0] != RSKeyDown)
-					{
-						ui->p_bControlsBrush->SetColor(TurnDarkOrShallow(ui->pages[ui->pageCurrent].slipsAddr[i]->color, false, 40));
-						if (mouseState.rgbButtons[0] == RSKey0)
-							ui->pages[ui->pageCurrent].slipsAddr[i]->MouseDown = false;
-					}
-					else
-					{
-						ui->pages[ui->pageCurrent].slipsAddr[i]->MouseDown = true;
-
-						ui->p_bControlsBrush->SetColor(TurnDarkOrShallow(ui->pages[ui->pageCurrent].slipsAddr[i]->color, true, 40));
-
-						ui->pages[ui->pageCurrent].slipsAddr[i]->rect2.left = *ui->UIS.mpt->x / ui->dpi;
-						ui->pages[ui->pageCurrent].slipsAddr[i]->rect2.left = ui->pages[ui->pageCurrent].slipsAddr[i]->rect2.left - slipWidth / 2;
-						ui->pages[ui->pageCurrent].slipsAddr[i]->rect2.right = ui->pages[ui->pageCurrent].slipsAddr[i]->rect2.left + slipWidth;
-
-						sliplong = (int)(ui->pages[ui->pageCurrent].slipsAddr[i]->rect.right - ui->pages[ui->pageCurrent].slipsAddr[i]->rect.left);
-						stemp = (int)(ui->pages[ui->pageCurrent].slipsAddr[i]->rect.right - ui->pages[ui->pageCurrent].slipsAddr[i]->rect2.left);
-						stemp = sliplong - stemp;
-						value = (float)stemp / (float)sliplong;
-						value *= 100;
-						value += 5;
-						ui->pages[ui->pageCurrent].slipsAddr[i]->value = (int)value;
-
-					}
-				}
-				context->FillRectangle(ui->pages[ui->pageCurrent].slipsAddr[i]->rect2, ui->p_bControlsBrush);
-				//swprintf_s((wchar_t*)pages[pageCurrent].slipsAddr[i]->text,20, L"%d",value);
-				//hwndren->DrawTextW(pages[pageCurrent].slipsAddr[i]->text,sizeof(pages[pageCurrent].slipsAddr[i]->text),m_pText,pages[pageCurrent].slipsAddr[i]->rect,p_bControlsBrush);
-			}
-
-			//
-
-			D2D1_ROUNDED_RECT rrect = { 0 };
-			bool b = false;
-			for (size_t j = 0; j < ui->pages[ui->pageCurrent].editsAddr.size(); j++)
-			{
-				if (ui->pages[ui->pageCurrent].editsAddr[j]->focus)
-				{
-					b = true;
-				}
-			}
-			if (!b)
-			{
-				ui->UIS.wParam->clear();
-				ui->editInputChar.clear();
-			}
-			for (size_t j = 0; j < ui->pages[ui->pageCurrent].editsAddr.size(); j++)
-			{
-
-				rrect.rect = ui->pages[ui->pageCurrent].editsAddr[j]->rect;
-				rrect.radiusX = (ui->pages[ui->pageCurrent].editsAddr[j]->rect.right - ui->pages[ui->pageCurrent].editsAddr[j]->rect.left) / 50;
-				rrect.radiusY = rrect.radiusX;
-
-				if (*ui->UIS.mpt->x == -1 || *ui->UIS.mpt->y == -1)
-					result = false;
-				else
-					result = PtInControl(ui->pages[ui->pageCurrent].editsAddr[j]->rect, ui->dpi, mpoint);
-
-				if (!result)
-				{
-					if (!ui->pages[ui->pageCurrent].editsAddr[j]->focus)
-					{
-						ui->p_bControlsBrush->SetColor(ui->pages[ui->pageCurrent].editsAddr[j]->color);
-						ui->p_bControlsBrush->SetOpacity(1.0f);
-					}
-					else
-					{
-						ui->p_bControlsBrush->SetColor(ui->pages[ui->pageCurrent].editsAddr[j]->color);
-						ui->p_bControlsBrush->SetOpacity(0.8f);
-					}
-					if (mouseState.rgbButtons[0] == RSKeyDown)
-						ui->pages[ui->pageCurrent].editsAddr[j]->focus = false;
-				}
-				else
-				{
-					if (!ui->pages[ui->pageCurrent].editsAddr[j]->focus)
-					{
-						if (mouseState.rgbButtons[0] == RSKeyDown)
-						{
-							ui->pages[ui->pageCurrent].editsAddr[j]->focus = true;
-						}
-						ui->p_bControlsBrush->SetColor(ui->pages[ui->pageCurrent].editsAddr[j]->color);
-						ui->p_bControlsBrush->SetOpacity(1.0f);
-					}
-					else
-					{
-						ui->p_bControlsBrush->SetColor(ui->pages[ui->pageCurrent].editsAddr[j]->color);
-						ui->p_bControlsBrush->SetOpacity(0.7f);
-					}
-				}
-				context->FillRoundedRectangle(&rrect, ui->p_bControlsBrush);
-
-				DWRITE_TEXT_METRICS metrics = { 0 };
-
-				ui->pages[ui->pageCurrent].editsAddr[j]->textLayout->GetMetrics(&metrics);
-
-				float width = ui->pages[ui->pageCurrent].editsAddr[j]->rect.right - ui->pages[ui->pageCurrent].editsAddr[j]->rect.left;
-
-				IDWriteFactory* dWriteFactory = ui->devices->g_GetDwriteFactory();
-				if (ui->pages[ui->pageCurrent].editsAddr[j]->focus)
-				{
-					ui->editInputChar = *ui->UIS.wParam;
-					if (0 != ui->editInputChar.size())
-					{
-						for (size_t i = 0; i < ui->editInputChar.size(); i++)
-						{
-							if (ui->editInputChar[i] == 8)
-							{
-								if (0 != ui->pages[ui->pageCurrent].editsAddr[j]->text.size())
-								{
-									ui->pages[ui->pageCurrent].editsAddr[j]->text.erase(ui->pages[ui->pageCurrent].editsAddr[j]->text.end() - 1);
-								}
-							}
-							else if (ui->editInputChar[i] == 13)
-							{
-								ui->pages[ui->pageCurrent].editsAddr[j]->text += L"\r\n";
-							}
-							else
-							{
-								ui->pages[ui->pageCurrent].editsAddr[j]->text.push_back(ui->editInputChar[i]);
-								//layoutLock.lock();
-
-								if (ui->pages[ui->pageCurrent].editsAddr[j]->textLayout)
-									ReleaseCom(ui->pages[ui->pageCurrent].editsAddr[j]->textLayout);
-
-								dWriteFactory->CreateTextLayout(ui->pages[ui->pageCurrent].editsAddr[j]->text.c_str(), ui->pages[ui->pageCurrent].editsAddr[j]->text.size(), ui->editTextFormat, 0.5f, 0.5f, &ui->pages[ui->pageCurrent].editsAddr[j]->textLayout);
-								ui->pages[ui->pageCurrent].editsAddr[j]->textLayout->GetMetrics(&metrics);
-								//layoutLock.unlock();
-								if ((metrics.width / width) >= 0.95)
-								{
-									ui->pages[ui->pageCurrent].editsAddr[j]->text.insert(ui->pages[ui->pageCurrent].editsAddr[j]->text.end() - 2, L'\n');
-								}
-							}
-						}
-						ui->UIS.wParam->clear();
-						ui->editInputChar.clear();
-					}
-					if (ui->pages[ui->pageCurrent].editsAddr[j]->textLayout)
-						ReleaseCom(ui->pages[ui->pageCurrent].editsAddr[j]->textLayout);
-					dWriteFactory->CreateTextLayout(ui->pages[ui->pageCurrent].editsAddr[j]->text.c_str(), ui->pages[ui->pageCurrent].editsAddr[j]->text.size(), ui->editTextFormat, 0.5f, 0.5f, &ui->pages[ui->pageCurrent].editsAddr[j]->textLayout);
-				}
-
-
-				ui->p_bControlsBrush->SetColor({ 1.0f,1.0f,1.0f,1.0f });
-				ui->p_bControlsBrush->SetOpacity(1.0f);
-				//layoutLock.lock();
-
-				//context->PushAxisAlignedClip(ui->pages[ui->pageCurrent].editsAddr[i]->rect , D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
-				context->DrawTextLayout({ ui->pages[ui->pageCurrent].editsAddr[j]->rect.left ,ui->pages[ui->pageCurrent].editsAddr[j]->rect.top }
-				, ui->pages[ui->pageCurrent].editsAddr[j]->textLayout, ui->p_bControlsBrush);
-				//context->PopAxisAlignedClip();
-
-				//layoutLock.unlock();
-				DWRITE_HIT_TEST_METRICS dhtm = { 0 };
-				BOOL inside = false;
-				BOOL outside = false;
-				ui->textLayout->HitTestPoint(*ui->UIS.mpt->x / ui->dpi, *ui->UIS.mpt->y / ui->dpi, &inside, &outside, &dhtm);
-				ui->textLayout->SetUnderline(FALSE, { 0,MAXINT });
-				ui->textLayout->SetUnderline(TRUE, { dhtm.textPosition,1 });
-			}
-
-
 		}
 	}
-
+	*/
 }
 
 

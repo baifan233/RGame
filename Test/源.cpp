@@ -299,48 +299,60 @@
 //	return 0;
 //}
 
-#include<Windows.h>
-#include<iostream>
-#include<vector>
-#include<map>
-using namespace std;
-map<int, string> m1;
-struct s1
-{
-	int i;
-	string s;
-};
-vector<s1> v1;
-void TestMap()
-{
-	map<int, string>::const_iterator f1 = m1.find(m1.size()-1);
-	printf("map  :%d %s\n",f1->first,f1->second.c_str());
-}
-void TestVect()
-{
-	for (size_t i = 0; i < v1.size(); i++)
-	{
-		if (v1[i].i == v1.size()-1)
-			printf("vector:  %d  %s\n",v1[i].i,v1[i].s.c_str());
-	}
-}
+//#include<Windows.h>
+//#include<iostream>
+//#include<vector>
+//#include<map>
+//using namespace std;
+//map<int, string> m1;
+//struct s1
+//{
+//	int i;
+//	string s;
+//};
+//vector<s1> v1;
+//void TestMap()
+//{
+//	map<int, string>::const_iterator f1 = m1.find(m1.size()-1);
+//	printf("map  :%d %s\n",f1->first,f1->second.c_str());
+//}
+//void TestVect()
+//{
+//	for (size_t i = 0; i < v1.size(); i++)
+//	{
+//		if (v1[i].i == v1.size()-1)
+//			printf("vector:  %d  %s\n",v1[i].i,v1[i].s.c_str());
+//	}
+//}
+//int main()
+//{
+//	char temp[24];
+//	for (size_t i = 0; i < 1000000; i++)
+//	{
+//		sprintf_s(temp,"num%d",i);
+//		m1.insert({ (int)i,temp});
+//		v1.push_back({(int)i,temp});
+//	}
+//	DWORD start = GetTickCount64();
+//	TestMap();
+//	DWORD end = GetTickCount64();
+//	printf("map test time: %d\n",end-start);
+//	start = GetTickCount64();
+//	TestVect();
+//	end = GetTickCount64();
+//	printf("vect test time: %d\n",end-start);
+//	
+//	return 0;
+//}
+
+#include<windows.h>
+#include<stdio.h>
 int main()
 {
-	char temp[24];
-	for (size_t i = 0; i < 1000000; i++)
-	{
-		sprintf_s(temp,"num%d",i);
-		m1.insert({ (int)i,temp});
-		v1.push_back({(int)i,temp});
-	}
-	DWORD start = GetTickCount64();
-	TestMap();
-	DWORD end = GetTickCount64();
-	printf("map test time: %d\n",end-start);
-	start = GetTickCount64();
-	TestVect();
-	end = GetTickCount64();
-	printf("vect test time: %d\n",end-start);
-	
+	FILE* fi = nullptr;  //声明结构体
+	fopen_s(&fi,"C:\\a.txt","rb+");  //第一个参数是 文件句柄(当成)   第二个参数是路径  第三个参数是读取方式  而rb+是二进制的读取方式
+	char* buffer = new char[2048];     //声明读取的buffer  以读入文件
+	fread(buffer,1,2048,fi);   //读入文件
+	fclose(fi);  //关闭文件
 	return 0;
 }
