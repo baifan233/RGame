@@ -96,7 +96,7 @@ struct TextStruct
 	string id;
 	//color
 	//D2D1_RECT_F rect = { 0.0f };
-	const wchar_t* text = NULL;
+	wstring text = NULL;
 };
 
 struct ActionStruct
@@ -183,11 +183,6 @@ struct RControl
 struct UIPAGE
 {
 	vector<RControl> controls;
-};
-static vector<string> definedFuncNames =
-{
-	"ColorTurnTo",
-	""
 };
 class UI;
 static UIPAGE uiReadPage(string s, UI* ui);
@@ -301,34 +296,47 @@ public:
 class RControls
 {
 public:
-	ID2D1RoundedRectangleGeometry* geo;
-	void SetOpacity(float o) { this->opacity = o; }
 	RControls() {}
-	void AddFloat4(D2D1_COLOR_F float4, string id) { float4s.push_back({ float4 ,id }); }
-
-	void SetRect(D2D1_RECT_F rect) { this->rect.rect = rect; }
-
 	void Init(UI* ui, float roundX, float roundY, int t)
 	{
 		this->transformTime = t;
 		this->rect.radiusX = roundX; this->rect.radiusY = roundY;
 		ui->devices->g_GetFactory()->CreateRoundedRectangleGeometry(rect, &geo);
 	}
+	void AddFloat4(D2D1_COLOR_F float4, string id) { float4s.push_back({ float4 ,id }); }
+	void AddmText(TextStruct mt) { mtexts.push_back(mt); }
+
+	void SetOpacity(float o) { this->opacity = o; }
+	void SetRect(D2D1_RECT_F rect) { this->rect.rect = rect; }
+	void SetControlColor(D2D1_COLOR_F color) { controlColor = color; }
+	void SetText(wstring text) { this->text = text; }
+	void SetTextColor(D2D1_COLOR_F color) { textColor = color; }
+
+	void MouseOnAddActionStruct(ActionStruct as) { mouseOn.push_back(as); }
+	void OnClickOnAddActionStruct(ActionStruct as) { onClick.push_back(as); }
+	void ClickUpAddActionStruct(ActionStruct as) { clickUp.push_back(as); }
+	void NormalAddActionStruct(ActionStruct as) { normal.push_back(as); }
+
+	vector<FLOAT4Struct>* GetFloat4() { return &float4s; }
+	D2D1_COLOR_F GetControlColor() { return controlColor; }
+	D2D1_COLOR_F GetTextColor() { return textColor; }
+
+	virtual void Draw(UI* ui) {}
+protected:
+	D2D1_COLOR_F controlColor = { 0.0f };
+	D2D1_COLOR_F textColor = { 1.0f };
+	wstring text = L"";
+	ID2D1RoundedRectangleGeometry* geo;
 	vector<ActionStruct> mouseOn;
 	vector<ActionStruct> onClick;
 	vector<ActionStruct> normal;
 	vector<ActionStruct> clickUp;
-
 	vector<FLOAT4Struct> float4s;
-	virtual void Draw(UI* ui) {}
-	D2D1_COLOR_F controlColor = { 0.0f };
-protected:
-
 	int transformTime = 0;
 	float opacity = 0.0f;
 	D2D1_ROUNDED_RECT rect = { 0 };
 	vector<ID2D1Bitmap**> bitmaps;
-	vector<TextStruct>texts;
+	vector<TextStruct>mtexts;
 
 };
 static bool PtInGeometry(ID2D1Geometry* pGeometry, D2D1_MATRIX_3X2_F& transMatrix, D2D1_POINT_2F pt)
@@ -404,16 +412,17 @@ public:
 		}
 		else if (rButtonState == RButtonState::ClickUp)
 		{
-			DoFunc(clickUp,ui);
+			DoFunc(clickUp, ui);
 		}
+		ui->devices->g_GetD2DRen()->SetAntialiasMode(D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
+
 		ui->p_bControlsBrush->SetColor(this->controlColor);//切换画刷颜色至按钮颜色
 		ui->p_bControlsBrush->SetOpacity(opacity);//切换画刷颜色至按钮颜色
-		controlColor.a = 1.0f;
 		context->FillRoundedRectangle(rect, ui->p_bControlsBrush);//画矩形		
-		ui->p_bControlsBrush->SetColor({1.0f,1.0f,1.0f,0.8f});//切换画刷颜色至按钮颜色
+		ui->p_bControlsBrush->SetColor({ 1.0f,1.0f,1.0f,1.0f });//切换画刷颜色至按钮颜色
 		context->DrawRoundedRectangle(rect, ui->p_bControlsBrush);//画矩形		
-		ui->p_bControlsBrush->SetColor({ 1.0f,1.0f,1.0f,1.0f });//
-		context->DrawText(L"123", lstrlenW(L"123"), ui->m_pText, rect.rect, ui->p_bControlsBrush);
+		ui->p_bControlsBrush->SetColor(textColor);//
+		context->DrawText(text.c_str(), text.size(), ui->m_pText, rect.rect, ui->p_bControlsBrush);
 	}
 
 	void DoFunc(vector<ActionStruct> as, UI* ui)
@@ -422,6 +431,7 @@ public:
 		float ftemp = 0.0f;
 		float ftemp2 = 0.0f;
 		D2D1_COLOR_F ctemp = { 0.0f };
+		D2D1_COLOR_F controlColor = { 0.0f };
 		for (size_t i = 0; i < as.size(); i++)
 		{
 			switch (as[i].funcNum)
@@ -435,19 +445,65 @@ public:
 						ctemp = *(D2D1_COLOR_F*)as[i].param[0];
 						ftemp2 = (float)transformTime / 1000.0f;    ftemp2 = 1.0f / ftemp2;
 
-
-						ftemp = ctemp.r - ui->uipage[0].controls[j].control->controlColor.r;
+						controlColor = ui->uipage[0].controls[j].control->GetControlColor();
+						ftemp = ctemp.r - controlColor.r;
 						ftemp = ftemp / 60.0f * ftemp2;
 
-						ui->uipage[0].controls[j].control->controlColor.r += ftemp;
+						controlColor.r += ftemp;
 
-						ftemp = ctemp.g - ui->uipage[0].controls[j].control->controlColor.g;
+						ftemp = ctemp.g - controlColor.g;
 						ftemp = ftemp / 60.0f * ftemp2;
-						ui->uipage[0].controls[j].control->controlColor.g += ftemp;
+						controlColor.g += ftemp;
 
-						ftemp = ctemp.b - ui->uipage[0].controls[j].control->controlColor.b;
+						ftemp = ctemp.b - controlColor.b;
 						ftemp = ftemp / 60.0f * ftemp2;
-						ui->uipage[0].controls[j].control->controlColor.b += ftemp;
+						controlColor.b += ftemp;
+
+						ftemp = ctemp.a - controlColor.a;
+						ftemp = ftemp / 60.0f * ftemp2;
+						controlColor.a += ftemp;
+						ui->uipage[0].controls[j].control->SetControlColor(controlColor);
+					}
+				}
+				break;
+			case 1:
+				stemp = *(string*)as[i].param[1];
+				for (size_t j = 0; j < ui->uipage[0].controls.size(); j++)
+				{
+					if (0 == stemp.compare(ui->uipage[0].controls[j].id))
+					{
+						ctemp = *(D2D1_COLOR_F*)as[i].param[0];
+						
+						ui->uipage[0].controls[j].control->SetControlColor(ctemp);
+					}
+				}
+				break;
+			case 2:
+				for (size_t j = 0; j < ui->uipage[0].controls.size(); j++)
+				{
+					if (0 == stemp.compare(ui->uipage[0].controls[j].id))
+					{
+						ctemp = *(D2D1_COLOR_F*)as[i].param[0];
+						ftemp2 = (float)transformTime / 1000.0f;    ftemp2 = 1.0f / ftemp2;
+
+						controlColor = ui->uipage[0].controls[j].control->GetTextColor();
+						ftemp = ctemp.r - controlColor.r;
+						ftemp = ftemp / 60.0f * ftemp2;
+
+						controlColor.r += ftemp;
+
+						ftemp = ctemp.g - controlColor.g;
+						ftemp = ftemp / 60.0f * ftemp2;
+						controlColor.g += ftemp;
+
+						ftemp = ctemp.b - controlColor.b;
+						ftemp = ftemp / 60.0f * ftemp2;
+						controlColor.b += ftemp;
+
+						ftemp = ctemp.a - controlColor.a;
+						ftemp = ftemp / 60.0f * ftemp2;
+						controlColor.a += ftemp;
+						ui->uipage[0].controls[j].control->SetTextColor(controlColor);
 					}
 				}
 				break;
@@ -539,18 +595,42 @@ static UIPAGE uiReadPage(string s, UI* ui)
 					if (f1 != -1)
 					{
 						f2 = datas[i].find("=", f1);
-						roundY = atof(datas[i].substr(f2 + 1, f2 - f1 - 1).c_str());						
+						roundY = atof(datas[i].substr(f2 + 1, f2 - f1 - 1).c_str());
 					}
 				}
-
-
-
 				f1 = datas[i].find("opacity");
 				if (f1 != -1)
 				{
 					f2 = datas[i].find("=", f1);
 					rb->SetOpacity(atof(datas[i].substr(f2 + 1, f2 - f1 - 1).c_str()));
 				}
+				f1 = datas[i].find("textColor");
+				if (f1 != -1)
+				{
+					f1 = datas[i].find("{", f1);
+					f2 = datas[i].find("}", f1);
+					datas2 = split(datas[i].substr(f1 + 1, f2 - f1 - 1), ",");
+					for (size_t j = 0; j < 4; j++)
+					{
+						ftemp[j] = (float)atof(datas2[j].c_str());
+					}
+					rb->SetTextColor({ ftemp[0],ftemp[1] ,ftemp[2] ,ftemp[3] });
+					datas2.~vector();
+				}
+				else    //找不到textcolor再找text  以免 textcolor的东西把text替换了
+				{
+					f1 = datas[i].find("text");
+					if (f1 != -1)
+					{
+						f1 = datas[i].find("\"", f1);
+						f2 = datas[i].find("\"", f1 + 1);
+						string stemp2 = datas[i].substr(f1 + 1, f2 - f1 - 1);
+						wchar_t wtemp[64] = L"\0";
+						swprintf_s(wtemp, 64, L"%hs\0", stemp2.c_str());
+						rb->SetText(wtemp);
+					}
+				}
+
 
 				f1 = datas[i].find("float4");
 				f2 = datas[i].find("=");
@@ -573,11 +653,30 @@ static UIPAGE uiReadPage(string s, UI* ui)
 					}
 				}
 
+				f1 = datas[i].find("RText");
+				f2 = datas[i].find("=");
+				if (f1 != -1)
+				{
+					f3 = datas[i].find("\"", f2);
+					if (f3 != -1)
+					{
+						f2 = datas[i].find("\"", f3 + 1);
+						temp2 = datas[i].substr(f3 + 1, f2 - f3 - 1);
+						wchar_t wtemp2[128];
+						swprintf_s(wtemp2, 128, L"%hs\0", temp2.c_str());
+						f2 = datas[i].find("=");;
+						//rb->AddFloat4({ ftemp[0],ftemp[1] ,ftemp[2] ,ftemp[3] }, datas[i].substr(f1 + 6, f2 - f1 - 6));
+						rb->AddmText({ datas[i].substr(f1 + 5,f2 - f1 - 5),wtemp2 });
+						datas2.~vector();
+
+					}
+				}
+
 			}
 			datas.~vector();
-			rb->Init(ui,roundX,roundY,transFormTime);
+			rb->Init(ui, roundX, roundY, transFormTime);
 			roundX = -1.0f; roundY = -1.0f;
-			transFormTime = -1;						
+			transFormTime = -1;
 			uipg.controls.push_back({ rb,id });
 			s.erase(ff1, ff2 - ff1);
 		}
@@ -589,13 +688,20 @@ static UIPAGE uiReadPage(string s, UI* ui)
 	id = "";
 
 	datas.~vector();
-
+	datas2.~vector();
 	vector<string>ToSearch =
 	{
 		"MouseOn",
 		"Normal",
 		"OnClick",
 		"ClickUp"
+	};
+	vector<string> definedFuncNames =
+	{
+		"ColorTurnTo",
+		"ColorTurnToAtOnce",
+		"TextColorTurnTo",
+		"SetText"
 	};
 	do
 	{
@@ -636,16 +742,28 @@ static UIPAGE uiReadPage(string s, UI* ui)
 													{
 														f3 = datas[j].find(")");
 														stemp = datas[j].substr(f2 + 1, f3 - f2 - 1);
-														for (size_t m = 0; m < uipg.controls[k].control->float4s.size(); m++)//m为colorid
+														vector<FLOAT4Struct>* f4stemp = uipg.controls[k].control->GetFloat4();
+														for (size_t m = 0; m < f4stemp->size(); m++)//m为colorid
 														{
-															if (0 == stemp.compare(uipg.controls[k].control->float4s[m].id))
+															if (0 == stemp.compare(f4stemp[0][m].id))
 															{
 																vector<void*> paramTemp;
 																switch (l)
 																{
-																case 0:
-																	paramTemp.push_back(&uipg.controls[k].control->float4s[m].f4s);
+																case 0:  //ColorTurnTo
+																	paramTemp.push_back(&f4stemp[0][m].f4s);
 																	paramTemp.push_back(&uipg.controls[k].id);
+																	break;
+																case 1:   //ColorTurnToAtOnce
+																	paramTemp.push_back(&f4stemp[0][m].f4s);
+																	paramTemp.push_back(&uipg.controls[k].id);
+																	break;
+																case 2:  //TextColorTurnTo
+																	paramTemp.push_back(&f4stemp[0][m].f4s);
+																	paramTemp.push_back(&uipg.controls[k].id);
+																	break;
+																case 3:   //SetText
+
 																	break;
 																default:
 																	break;
@@ -653,16 +771,16 @@ static UIPAGE uiReadPage(string s, UI* ui)
 																switch (i1)
 																{
 																case 0:
-																	uipg.controls[i].control->mouseOn.push_back({ (int)l,paramTemp });//D2D1_COLOR_F ctemp = *(D2D1_COLOR_F*)uipg.controls[i].control->mouseOn[0].param[0];
+																	uipg.controls[i].control->MouseOnAddActionStruct({ (int)l,paramTemp });
 																	break;
 																case 1:
-																	uipg.controls[i].control->normal.push_back({ (int)l,paramTemp });//D2D1_COLOR_F ctemp = *(D2D1_COLOR_F*)uipg.controls[i].control->mouseOn[0].param[0];
+																	uipg.controls[i].control->NormalAddActionStruct({ (int)l,paramTemp });
 																	break;
 																case 2:
-																	uipg.controls[i].control->onClick.push_back({ (int)l,paramTemp });//D2D1_COLOR_F ctemp = *(D2D1_COLOR_F*)uipg.controls[i].control->mouseOn[0].param[0];
+																	uipg.controls[i].control->OnClickOnAddActionStruct({ (int)l,paramTemp });
 																	break;
 																case 3:
-																	uipg.controls[i].control->clickUp.push_back({ (int)l,paramTemp });//D2D1_COLOR_F ctemp = *(D2D1_COLOR_F*)uipg.controls[i].control->mouseOn[0].param[0];
+																	uipg.controls[i].control->ClickUpAddActionStruct({ (int)l,paramTemp });
 																	break;
 																default:
 																	break;

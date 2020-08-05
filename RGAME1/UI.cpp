@@ -119,11 +119,12 @@ void UI::Draw()
 
 	UI* ui = this;
 	float opacityTemp = 0.0f;
+	
 	for (size_t i = 0; i < this->uipage[0].controls.size(); i++)
 	{
 		uipage[0].controls[i].control->Draw(ui);
-			
 	}
+	
 	/*
 	if (ui->pageCurrent < 20)
 	{
