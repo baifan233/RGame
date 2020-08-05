@@ -11,6 +11,7 @@ public:
 	void Work();
 	void DealInput(RSKEYSTATE* KeyState, DIJOYSTATE2);
 private:
+	UIPAGE ui1;
 	GameLogRecorder* gRecorder=nullptr;
 	UI ui=UI();
 	DWORD frameRate = 1000 / 60;

@@ -2,6 +2,7 @@
 
 #include"GDevices.h"
 #include"World.h"
+#include"ResourceManager.h"
 enum class RButtonState
 {
 	Normal = 0,
@@ -94,8 +95,6 @@ struct UIInputStruct
 struct TextStruct
 {
 	string id;
-	//color
-	//D2D1_RECT_F rect = { 0.0f };
 	wstring text = NULL;
 };
 
@@ -110,76 +109,12 @@ struct FLOAT4Struct
 	string id;
 };
 
-
-
-static string DeleteUnnecessaryChar(string b2)
-{
-	for (size_t i = 0; i < b2.size(); i++)
-	{
-		if (b2[i] == '\n' || b2[i] == ' ' || b2[i] < 0 || b2[i] == '\t')
-		{
-			b2.erase(b2.begin() + i);
-			if (i >= 1)i--;
-			continue;
-		}
-	}
-	return b2;
-}
-static string DeleteNote(string b2)
-{
-	int f1 = b2.find("/*");
-	int f2 = b2.find("*/");
-	while (f1 != -1)
-	{
-		if (f1 != -1 && f1 < f2)
-		{
-			b2.erase(b2.begin() + f1, b2.begin() + f2 + 2);
-		}
-		f1 = b2.find("/*");
-		f2 = b2.find("*/");
-	}
-	f1 = b2.find("//");
-
-	while (f1 != -1)
-	{
-		if (f1 != -1)
-		{
-			f2 = b2.find("\n", f1);
-			b2.erase(b2.begin() + f1, b2.begin() + f2 + 1);
-		}
-		f1 = b2.find("//");
-		if (f1 != -1)
-		{
-			f2 = b2.find("\n", f1);
-		}
-	}
-	return b2;
-}
-static vector<string> split(string str, string pattern)
-{
-	string::size_type pos;
-	vector<string> result;
-
-	str += pattern;
-	int size = str.size();
-
-	for (int i = 0; i < size; i++) {
-		pos = str.find(pattern, i);
-		if (pos < size) {
-			std::string s = str.substr(i, pos - i);
-			result.push_back(s);
-			i = pos + pattern.size() - 1;
-		}
-	}
-	return result;
-}
 class RControls;
 struct RControl
 {
 	RControls* control = nullptr;
 	string id = 0;
 };
-
 struct UIPAGE
 {
 	vector<RControl> controls;
@@ -187,42 +122,34 @@ struct UIPAGE
 class UI;
 static UIPAGE uiReadPage(string s, UI* ui);
 
-static bool PtInControl(D2D1_RECT_F rect, float dpi, POINT pt)
-{
-	RECT rect2 = { 0 };
-	rect2.left = (LONG)(rect.left * dpi);
-	rect2.right = (LONG)(rect.right * dpi);
-	rect2.top = (LONG)(rect.top * dpi);
-	rect2.bottom = (LONG)(rect.bottom * dpi);
-	bool pirReuslt = PtInRect(&rect2, pt);
-	if (!pirReuslt)return false;//如果不在矩形内
-	else return true;
-}
 class UI
 {
 
-public:
-	vector<UIPAGE> uipage;
-	void LoadFromFile()
+public:	
+	UIPAGE LoadFromFile()
 	{
 		FILE* ifile = nullptr;
-		fopen_s(&ifile, "C:\\rb1.txt", "r");
-		if (ifile == nullptr) return;
-		char* buffer = new char[2048];
-		fread_s(buffer, 2048, 1, 2048, ifile);
+		UIPAGE uipg;
+		fopen_s(&ifile, "rb1.txt", "r");
+		if (ifile == nullptr) return uipg;
+		char* buffer = new char[4096];
+		fread_s(buffer, 4096, 1, 4096, ifile);
 		fclose(ifile);
 		string b2 = buffer;
 		delete[] buffer; buffer = nullptr;
 		b2 = DeleteNote(b2);
-		b2 = DeleteUnnecessaryChar(b2);
-
-		uipage.push_back(uiReadPage(b2, this));
-
-		return;
+		b2 = DeleteUnnecessaryChar(b2);		
+		uipg = uiReadPage(b2, this);
+		return uipg;
 	}
+
+
+	UIPAGE* mcurrentPage=nullptr;
+	void SetUIPAGE(UIPAGE* upg) { mcurrentPage = upg; }
 	UI();
-	World* world;
-	bool Init(GDevices* gdevices, World* world);
+	World* world=nullptr;
+	ResourceManager* resourceManager;
+	bool Init(GDevices* gdevices, World* world,ResourceManager* res);
 
 	HWND hwnd = 0;
 	int screenWidth = 0;
@@ -291,8 +218,6 @@ public:
 	void DeleteControl(size_t id);
 	size_t CreateEdit(D2D1_RECT_F rect, D2D1_COLOR_F color);
 };
-
-
 class RControls
 {
 public:
@@ -306,6 +231,7 @@ public:
 	void AddFloat4(D2D1_COLOR_F float4, string id) { float4s.push_back({ float4 ,id }); }
 	void AddmText(TextStruct mt) { mtexts.push_back(mt); }
 
+	void SetBitmap(ID2D1Bitmap* bmp) { this->bitmap = bmp; }
 	void SetOpacity(float o) { this->opacity = o; }
 	void SetRect(D2D1_RECT_F rect) { this->rect.rect = rect; }
 	void SetControlColor(D2D1_COLOR_F color) { controlColor = color; }
@@ -323,10 +249,11 @@ public:
 
 	virtual void Draw(UI* ui) {}
 protected:
+	ID2D1Bitmap* bitmap=nullptr;
 	D2D1_COLOR_F controlColor = { 0.0f };
 	D2D1_COLOR_F textColor = { 1.0f };
 	wstring text = L"";
-	ID2D1RoundedRectangleGeometry* geo;
+	ID2D1RoundedRectangleGeometry* geo=nullptr;
 	vector<ActionStruct> mouseOn;
 	vector<ActionStruct> onClick;
 	vector<ActionStruct> normal;
@@ -335,7 +262,6 @@ protected:
 	int transformTime = 0;
 	float opacity = 0.0f;
 	D2D1_ROUNDED_RECT rect = { 0 };
-	vector<ID2D1Bitmap**> bitmaps;
 	vector<TextStruct>mtexts;
 
 };
@@ -359,6 +285,7 @@ public:
 	RButton() {}
 	virtual void Draw(UI* ui)
 	{
+		if (ui->mcurrentPage == nullptr)return;
 		ID2D1DeviceContext3* context = ui->devices->g_GetD2DRen();
 		POINT mpoint = { *ui->UIS.mpt->x,*ui->UIS.mpt->y };
 		DIMOUSESTATE mouseState = ui->devices->GetMouseState();
@@ -421,8 +348,15 @@ public:
 		context->FillRoundedRectangle(rect, ui->p_bControlsBrush);//画矩形		
 		ui->p_bControlsBrush->SetColor({ 1.0f,1.0f,1.0f,1.0f });//切换画刷颜色至按钮颜色
 		context->DrawRoundedRectangle(rect, ui->p_bControlsBrush);//画矩形		
+		ID2D1Layer* layer;
+		context->CreateLayer(&layer);
+		context->PushLayer(D2D1::LayerParameters(rect.rect,geo),layer);
+		context->DrawBitmap(bitmap,rect.rect);
+		context->PopLayer();
+		layer->Release();
 		ui->p_bControlsBrush->SetColor(textColor);//
 		context->DrawText(text.c_str(), text.size(), ui->m_pText, rect.rect, ui->p_bControlsBrush);
+
 	}
 
 	void DoFunc(vector<ActionStruct> as, UI* ui)
@@ -438,14 +372,14 @@ public:
 			{
 			case 0:  //ColorTurnTo
 				stemp = *(string*)as[i].param[1];
-				for (size_t j = 0; j < ui->uipage[0].controls.size(); j++)
+				for (size_t j = 0; j < ui->mcurrentPage->controls.size(); j++)
 				{
-					if (0 == stemp.compare(ui->uipage[0].controls[j].id))
+					if (0 == stemp.compare(ui->mcurrentPage->controls[j].id))
 					{
 						ctemp = *(D2D1_COLOR_F*)as[i].param[0];
 						ftemp2 = (float)transformTime / 1000.0f;    ftemp2 = 1.0f / ftemp2;
 
-						controlColor = ui->uipage[0].controls[j].control->GetControlColor();
+						controlColor = ui->mcurrentPage->controls[j].control->GetControlColor();
 						ftemp = ctemp.r - controlColor.r;
 						ftemp = ftemp / 60.0f * ftemp2;
 
@@ -462,31 +396,31 @@ public:
 						ftemp = ctemp.a - controlColor.a;
 						ftemp = ftemp / 60.0f * ftemp2;
 						controlColor.a += ftemp;
-						ui->uipage[0].controls[j].control->SetControlColor(controlColor);
+						ui->mcurrentPage->controls[j].control->SetControlColor(controlColor);
 					}
 				}
 				break;
 			case 1:
 				stemp = *(string*)as[i].param[1];
-				for (size_t j = 0; j < ui->uipage[0].controls.size(); j++)
+				for (size_t j = 0; j < ui->mcurrentPage->controls.size(); j++)
 				{
-					if (0 == stemp.compare(ui->uipage[0].controls[j].id))
+					if (0 == stemp.compare(ui->mcurrentPage->controls[j].id))
 					{
 						ctemp = *(D2D1_COLOR_F*)as[i].param[0];
 						
-						ui->uipage[0].controls[j].control->SetControlColor(ctemp);
+						ui->mcurrentPage->controls[j].control->SetControlColor(ctemp);
 					}
 				}
 				break;
 			case 2:
-				for (size_t j = 0; j < ui->uipage[0].controls.size(); j++)
+				for (size_t j = 0; j < ui->mcurrentPage->controls.size(); j++)
 				{
-					if (0 == stemp.compare(ui->uipage[0].controls[j].id))
+					if (0 == stemp.compare(ui->mcurrentPage->controls[j].id))
 					{
 						ctemp = *(D2D1_COLOR_F*)as[i].param[0];
 						ftemp2 = (float)transformTime / 1000.0f;    ftemp2 = 1.0f / ftemp2;
 
-						controlColor = ui->uipage[0].controls[j].control->GetTextColor();
+						controlColor = ui->mcurrentPage->controls[j].control->GetTextColor();
 						ftemp = ctemp.r - controlColor.r;
 						ftemp = ftemp / 60.0f * ftemp2;
 
@@ -503,7 +437,7 @@ public:
 						ftemp = ctemp.a - controlColor.a;
 						ftemp = ftemp / 60.0f * ftemp2;
 						controlColor.a += ftemp;
-						ui->uipage[0].controls[j].control->SetTextColor(controlColor);
+						ui->mcurrentPage->controls[j].control->SetTextColor(controlColor);
 					}
 				}
 				break;
@@ -650,6 +584,18 @@ static UIPAGE uiReadPage(string s, UI* ui)
 						rb->AddFloat4({ ftemp[0],ftemp[1] ,ftemp[2] ,ftemp[3] }, datas[i].substr(f1 + 6, f2 - f1 - 6));
 						datas2.~vector();
 
+					}
+				}
+
+				f1 = datas[i].find("bitmap");
+				
+				if (f1 != -1)
+				{					
+					f2 = datas[i].find("=");
+					if (f2 != -1)
+					{						
+						temp2 = datas[i].substr(f2 +1, datas[i].size()-f2-1);																	
+						rb->SetBitmap(ui->resourceManager->GetTexture(temp2).bitmap);
 					}
 				}
 

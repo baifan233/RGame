@@ -31,11 +31,22 @@
 //#include"DTSOUND.h"
 //#pragma comment(lib,"DTSOUND.lib")
 //#include"include/box2d/box2d.h"
+
 #include"chipmunk/chipmunk.h"
 
 using namespace std;
 //#pragma comment(lib,"box2d.lib")
+
+// 32位编译
+#ifdef _M_IX86
 #pragma comment(lib,"chipmunk.lib")
+#endif // _M_IX86
+// 64位编译
+#ifdef _M_X64
+#pragma comment(lib,"chipmunk64.lib")
+#endif // _M_X64
+
+
 #pragma comment(lib,"d2d1.lib")
 #pragma comment(lib,"dwrite.lib")
 #pragma comment(lib,"dinput8.lib")
@@ -67,6 +78,7 @@ static  float RadToDeg(float rad) { return rad * 180.0f / (float)PI; }
 static int screenWidth = 1024;
 static int screenHeight = 768;
 
+
 static ID2D1Bitmap* D2DCreateBitmap(ID2D1RenderTarget* d2dRenderTarget, IWICImagingFactory* g_image_factory, const wchar_t* FilePath)
 {
 	ID2D1Bitmap* g_bitmap = 0;
@@ -83,8 +95,8 @@ static ID2D1Bitmap* D2DCreateBitmap(ID2D1RenderTarget* d2dRenderTarget, IWICImag
 	if (FAILED(g_image_factory->CreateDecoderFromFilename(FilePath, NULL
 		, GENERIC_READ, WICDecodeMetadataCacheOnDemand, &bitmapdecoder)))
 	{
-		MessageBox(0, L"CreateBitmap Failed! Check the bitmap file Or Code", L"Error", MB_OK | MB_ICONERROR);
-		return 0;
+		
+		return nullptr;
 	}
 	IWICBitmapFrameDecode* pframe = NULL;
 	bitmapdecoder->GetFrame(0, &pframe);
@@ -102,6 +114,49 @@ static ID2D1Bitmap* D2DCreateBitmap(ID2D1RenderTarget* d2dRenderTarget, IWICImag
 }
 
 
+static string DeleteUnnecessaryChar(string b2)
+{
+	for (size_t i = 0; i < b2.size(); i++)
+	{
+		if (b2[i] == '\n' || b2[i] == ' ' || b2[i] < 0 || b2[i] == '\t')
+		{
+			b2.erase(b2.begin() + i);
+			if (i >= 1)i--;
+			continue;
+		}
+	}
+	return b2;
+}
+static string DeleteNote(string b2)
+{
+	int f1 = b2.find("/*");
+	int f2 = b2.find("*/");
+	while (f1 != -1)
+	{
+		if (f1 != -1 && f1 < f2)
+		{
+			b2.erase(b2.begin() + f1, b2.begin() + f2 + 2);
+		}
+		f1 = b2.find("/*");
+		f2 = b2.find("*/");
+	}
+	f1 = b2.find("//");
+
+	while (f1 != -1)
+	{
+		if (f1 != -1)
+		{
+			f2 = b2.find("\n", f1);
+			b2.erase(b2.begin() + f1, b2.begin() + f2 + 1);
+		}
+		f1 = b2.find("//");
+		if (f1 != -1)
+		{
+			f2 = b2.find("\n", f1);
+		}
+	}
+	return b2;
+}
 
 static DWORD GetCurrentActiveWindowsProcessId()
 {
@@ -110,7 +165,24 @@ static DWORD GetCurrentActiveWindowsProcessId()
 	GetWindowThreadProcessId(hWnd, &processId);
 	return processId;
 }
+static vector<string> split(string str, string pattern)
+{
+	string::size_type pos;
+	vector<string> result;
 
+	str += pattern;
+	int size = str.size();
+
+	for (int i = 0; i < size; i++) {
+		pos = str.find(pattern, i);
+		if (pos < size) {
+			std::string s = str.substr(i, pos - i);
+			result.push_back(s);
+			i = pos + pattern.size() - 1;
+		}
+	}
+	return result;
+}
 static BOOL HasFocus()
 {
 	DWORD cp = GetCurrentProcessId();

@@ -1,7 +1,8 @@
 #include "UI.h"
+
 UI::UI()
 {
-	//初始化时设置最大20个控件页	
+	//初始化时设置最大20个控件页
 	Page p = { 0 };
 	p.bitmapOpacity = 1.0f;
 	for (int i = 0; i < 20; i++)
@@ -9,11 +10,10 @@ UI::UI()
 		this->pages.push_back(p);
 	}
 }
-float GetDPI(HWND hwnd)
+float GetDPI(float dpix,float dpiy)
 {
-	int zoom = GetDpiForWindow(hwnd);
-	float dpi = 0;
-	switch (zoom) {
+	float dpi = 0.0f;
+	switch ((int)dpix) {
 	case 96:
 		dpi = 1;
 		break;
@@ -33,13 +33,14 @@ float GetDPI(HWND hwnd)
 	return dpi;
 }
 
-bool UI::Init(GDevices* gdevices,World* world)
+bool UI::Init(GDevices* gdevices,World* world,ResourceManager* res)
 {
 	
-	if (gdevices == nullptr|| world ==nullptr)
+	if (gdevices == nullptr|| world ==nullptr||res==nullptr)
 		return false;
 	this->world = world;
 	this->devices = gdevices;
+	this->resourceManager = res;
 	RECT rect = gdevices->GetWindowRect();
 	this->screenWidth = rect.right;
 	this->screenHeight = rect.bottom;
@@ -50,7 +51,9 @@ bool UI::Init(GDevices* gdevices,World* world)
 	gdevices->g_GetDwriteFactory()->CreateTextFormat(L"微软雅黑", 0, DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL,
 		DWRITE_FONT_STRETCH_EXTRA_CONDENSED, 30, L"", &editTextFormat);
 
-	dpi = GetDPI(gdevices->GetMainWindow());
+	float dpix = 0.0f, dpiy = 0.0f;
+	gdevices->g_GetD2DRen()->GetDpi(&dpix, &dpiy);
+	dpi = GetDPI(dpix,dpiy);
 
 	if (FAILED(gdevices->g_GetDwriteFactory()->CreateTextLayout(L"", lstrlenW(L""),
 		editTextFormat, 1.0f, 1.0f, &textLayout)))
@@ -119,10 +122,10 @@ void UI::Draw()
 
 	UI* ui = this;
 	float opacityTemp = 0.0f;
-	
-	for (size_t i = 0; i < this->uipage[0].controls.size(); i++)
+	if (mcurrentPage == nullptr)return;
+	for (size_t i = 0; i < mcurrentPage->controls.size(); i++)
 	{
-		uipage[0].controls[i].control->Draw(ui);
+		mcurrentPage->controls[i].control->Draw(ui);
 	}
 	
 	/*

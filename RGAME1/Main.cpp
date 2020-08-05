@@ -29,8 +29,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     
 
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_RGAME1));
-
-
+    
 
     //初始化设备
                             //实例句柄  窗口过程  窗口类名   窗口宽度       窗口高度

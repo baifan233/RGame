@@ -1,0 +1,3 @@
+bg = LoadTexture("..\Release\tex\tex.jpg");
+stone = LoadTexture("..\Release\tex\stone.png");
+bmp1 = LoadTexture("..\Release\tex\bitmap2.png");

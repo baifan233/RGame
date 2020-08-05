@@ -1,0 +1,45 @@
+ /*RBackGround
+ {
+ Bitmap b = stone;
+
+ }
+*/
+ RButton rb1
+{
+	roundX=10.0f;  //圆角半径X
+	roundY=10.0f;   //圆角半径Y
+	rect={100.0f,100.0f,170.0f,150.0f};  //默认矩形  x y right bottom
+    transformTime=100;   //转换时间
+    opacity=1.0;   //透明度
+	text="456";      //按钮默认文字
+	textColor={1.0f,1.0,1.0,1.0};   //默认颜色
+	bitmap=bg;
+
+	float4 c0={0.0,0.0,0.0,1.0};         //自己定义的color0
+	float4 c1={0.3,0.3,0.3,1.0};
+	float4 c2={1.0f,1.0,1.0,1.0};
+	float4 c3={0.0f,0.0,1.0,0.8};
+	
+
+	RText r1="789";	
+
+}#end RButton
+
+#rb1.MouseOn
+{	
+	rb1.ColorTurnTo(c0);
+	rb1.TextColorTurnTo(c2);
+}
+#rb1.Normal
+{	
+	 rb1.ColorTurnTo(c2);
+	 rb1.TextColorTurnTo(c0);
+}
+#rb1.OnClick
+{	
+	rb1.ColorTurnToAtOnce(c2);
+}
+#rb1.ClickUp
+{
+	rb1.ColorTurnTo(c3);
+}

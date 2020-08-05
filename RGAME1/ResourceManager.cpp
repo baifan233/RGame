@@ -23,14 +23,14 @@ void ResourceManager::Init(GDevices* devices)
 	
 }
 
-bool ResourceManager::CreateTexture(const wchar_t* file, int id)
-{
-	if (IsIdUsed(id))
-		return false;
-
+bool ResourceManager::CreateTexture(const wchar_t* file, string id)
+{	
 	ID2D1Bitmap* bitmap = D2DCreateBitmap(devices->g_GetD2DRen(), devices->g_GetimageFacotry(), file);
 	if (bitmap == nullptr)
+	{
+		this->devices->GetRecorder()->LogRecord(LogType::Error,L"Load Texture Failed!");
 		return false;
+	}
 	ID2D1BitmapBrush* bitmapbrush;
 	devices->g_GetD2DRen()->CreateBitmapBrush(bitmap, &bitmapbrush);
 	TextureResource.push_back({ bitmap,bitmapbrush,id });

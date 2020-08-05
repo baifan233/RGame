@@ -49,12 +49,13 @@ void Game::Init(GDevices* gDevices)
 	if (gRecorder == nullptr)  return;
 
 	resourceManager.Init(gDevices);
+	resourceManager.LoadFormFile("res.txt");
 	world.Init(gDevices, &resourceManager);
 		
 
-	resourceManager.CreateTexture(L"bitmap2.png", 0);
-	ui.Init(gDevices, &world);
-	size_t b1 = ui.CreateButton({ 0.176f,0.176f,0.188f,1.0f }, { 1.0f,1.0f,1.0f,1.0f }, L"重力:开", { 100.0f,100.0f,200.0f,170.0f }, (void(*)(void*, void*, void*))changegravity);
+	
+	ui.Init(gDevices, &world,&resourceManager);
+	/*size_t b1 = ui.CreateButton({ 0.176f,0.176f,0.188f,1.0f }, { 1.0f,1.0f,1.0f,1.0f }, L"重力:开", { 100.0f,100.0f,200.0f,170.0f }, (void(*)(void*, void*, void*))changegravity);
 	size_t b2 = ui.CreateButton({ 0.176f,0.176f,0.188f,1.0f }, { 1.0f,1.0f,1.0f,1.0f }, L"建造模式:关", { 100.0f,200.0f,200.0f,270.0f }, (void(*)(void*, void*, void*))changebuildmode);	
 
 	size_t b3 = ui.CreateButton({ 0.176f,0.176f,0.188f,1.0f }, { 1.0f,1.0f,1.0f,1.0f }, L"生成100个方块", { 100.0f,300.0f,280.0f,370.0f }, (void(*)(void*, void*, void*))build1);
@@ -70,14 +71,15 @@ void Game::Init(GDevices* gDevices)
 
 	ui.SetPageForControl(b3, 0);
 	ui.SetCurrentPage(0);
-	ui.LoadBitmapForControl(b3, L"bitmap2.png");
+	ui.LoadBitmapForControl(b3, L"bitmap2.png");*/
 	UIInputStruct uis;
 	uis.mpt = devices->GetMousePoint();
 	uis.rsKeyState = devices->GetKeyState();
 	uis.wParam = devices->GetCharParam();
 	ui.SetUIS(uis);
-
+	ui1 = ui.LoadFromFile();
 	ui.LoadFromFile();
+	ui.mcurrentPage=&ui1;
 	//ui.CreateRenderThread();
 }
 static bool bdraw = true;
@@ -91,6 +93,10 @@ void Game::DealInput(RSKEYSTATE* KeyState, DIJOYSTATE2 inp_JoyState)
 	if (KeyState[DIK_Z] == RSKeyUp)
 	{
 		bdraw = !bdraw;
+	}
+	if (KeyState[DIK_F] == RSKeyUp)
+	{
+		world.SetBuildMode(!world.bBuildMode());
 	}
 	if (KeyState[DIK_W] == RSKeyDown)
 	{

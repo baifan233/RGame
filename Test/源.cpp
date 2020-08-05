@@ -347,12 +347,56 @@
 
 #include<windows.h>
 #include<stdio.h>
+#include<string>
+#include<vector>
+#include<d2d1.h>
+#include<map>
+using namespace std;
+struct ms
+{
+	string id;
+	int value;
+};
+vector<ms>  ms1;
+map<string, int> map1;
 int main()
 {
-	FILE* fi = nullptr;  //声明结构体
-	fopen_s(&fi,"C:\\a.txt","rb+");  //第一个参数是 文件句柄(当成)   第二个参数是路径  第三个参数是读取方式  而rb+是二进制的读取方式
-	char* buffer = new char[2048];     //声明读取的buffer  以读入文件
-	fread(buffer,1,2048,fi);   //读入文件
-	fclose(fi);  //关闭文件
+	
+	char temp[20] = "";
+	for (size_t i = 0; i < 10000; i++)
+	{
+		sprintf_s(temp, "id%i\0", i);
+		ms1.push_back({ temp,(int)i + 1 });
+		map1.insert({ temp,(int)i + 1 });
+	}
+
+	DWORD t1 = GetTickCount64();
+	string ftemp = "id9999";
+	for (size_t i = 0; i < 10000; i++)
+	{
+		for (size_t j = 0; j < ms1.size(); j++)
+		{
+			if (0 == ms1[j].id.compare(ftemp))
+			{
+				//printf("%d\n", ms1[j].value);
+			}
+		}
+	}
+	DWORD t2 = GetTickCount64();
+	printf("  %d ms\n", t2 - t1);
+	t1 = GetTickCount64();
+	for (size_t j = 0; j < 10000; j++)
+	{
+		for (map<string, int>::iterator i = map1.begin(); i != map1.end(); i++)
+		{
+			if (0==i->first.compare(ftemp))
+			{
+				//printf("%d\n", i->second);
+			}
+		}
+	}
+	t2 = GetTickCount64();
+	printf(" %d ms\n",t2-t1);
+	system("pause");
 	return 0;
 }

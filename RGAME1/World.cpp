@@ -44,7 +44,6 @@ void World::Init(GDevices* gdevices, ResourceManager* rm)
 	InitPlayer();
 
 	gDevices->g_GetD2DRen()->CreateSpriteBatch(&batch1);
-	bitmap1 = D2DCreateBitmap(gDevices->g_GetD2DRen(), gDevices->g_GetimageFacotry(), L"tex.jpg");
 }
 
 void World::InitPlayer()
@@ -67,7 +66,7 @@ void World::Draw(RObjectType objType, float scaleSize)
 	batch1->AddSprites(1, &rect1);
 
 	gDevices->g_GetD2DRen()->DrawSpriteBatch(
-		batch1, bitmap1, D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR);
+		batch1, resourceManager->GetTexture("bmp1").bitmap, D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR);
 
 	cpShapeType shapeType;
 	ID2D1PathGeometry* geometry = NULL;
@@ -80,6 +79,7 @@ void World::Draw(RObjectType objType, float scaleSize)
 	cpVect pos = { 0.0 };
 	D2D1_POINT_2F pointemp = { 0 };
 	D2D1_RECT_F cameraRect = gDevices->GetCameraRect();
+	ID2D1Layer* layer;
 	D2D1::Matrix3x2F matrix;
 	D2D1::Matrix3x2F matrixNormal;
 	D2D1::Matrix3x2F BoxMatrix;
@@ -158,8 +158,16 @@ void World::Draw(RObjectType objType, float scaleSize)
 				else
 					brush->SetOpacity(1.0f);
 
+				
 				if (transGeo)
+				{
+					/*gDevices->g_GetD2DRen()->CreateLayer(&layer);
+					gDevices->g_GetD2DRen()->PushLayer(D2D1::LayerParameters(D2D1::InfiniteRect(),transGeo),layer);
+					gDevices->g_GetD2DRen()->DrawBitmap(resourceManager->GetTexture("stone").bitmap);
+					gDevices->g_GetD2DRen()->PopLayer();
+					layer->Release();*/
 					gDevices->g_GetD2DRen()->FillGeometry(transGeo, brush);
+				}
 
 
 				//gDevices->GetD2DRen()->PushAxisAlignedClip();

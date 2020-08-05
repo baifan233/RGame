@@ -14,7 +14,6 @@ private:
 	cpSpace* space = 0;
 	GDevices* gDevices = 0;
 	ID2D1SpriteBatch* batch1 = 0;
-	ID2D1Bitmap* bitmap1 = 0;
 	bool bGravity = true;
 	bool bbuildMode = false;
 public:
