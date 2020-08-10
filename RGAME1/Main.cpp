@@ -1,8 +1,9 @@
 ﻿
 
-#include"Resource.h"
-#include"GDevices.h"
-#include"Game.h"
+#include"core/Resource.h"
+#include"core/GDevices.h"
+#include"game/Game.h"
+//#include<shellapi.h>
 
 #define MAX_LOADSTRING 100
 
@@ -10,7 +11,6 @@
 HINSTANCE hInst;                                // 当前实例
 WCHAR szWindowClass[MAX_LOADSTRING];            
 GDevices g_Devices;
-
 
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 
@@ -31,15 +31,16 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_RGAME1));
     
 
+
     //初始化设备
                             //实例句柄  窗口过程  窗口类名   窗口宽度       窗口高度
-    g_Devices.InitMainWindow(hInstance, WndProc, L"RGame", screenWidth, screenHeight);   //初始化窗口
+    g_Devices.InitMainWindow(hInstance, WndProc, L"RGame", screenWidth, screenHeight,true);   //初始化窗口
 
     g_Devices.window_Show(true);//显示窗口
 
     g_Devices.inp_InitinputDevice(hInstance, DeviceType_All);//初始化全部输入设备(包括鼠标 键盘  手柄(如果有的话))
 
-    g_Devices.g_InitD2D();//初始化D2D绘图设备   
+    g_Devices.g_InitGraphic(g_Devices.GetMainWindow());//初始化D2D绘图设备   
     
     g_Devices.SetCharParam(&charwParam);//给设备类传进窗口输入的字符(用于文本框字符输入)
 
@@ -47,10 +48,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     Game mGame;//声明游戏类
     
     mGame.Init(&g_Devices);//初始化游戏
-
     
     MSG msg = { 0 };
 
+    sp::Renderer* r= g_Devices.g_GetRenderer();
     // 主消息循环:
     while (msg.message != WM_QUIT)
     {
@@ -63,9 +64,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         {
             //游戏运行
             mGame.Work();
-          
+            r->Update(0.32f);
+            r->Draw();
+            //SDL_GL_SwapWindow(window);
+            g_Devices.g_OpenGLPresent();
         }
     }    
+    
     return (int)msg.wParam;
 }
 

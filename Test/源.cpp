@@ -345,58 +345,337 @@
 //	return 0;
 //}
 
-#include<windows.h>
-#include<stdio.h>
-#include<string>
-#include<vector>
-#include<d2d1.h>
-#include<map>
+//#include<windows.h>
+//#include<stdio.h>
+//#include<string>
+//#include<vector>
+//#include<d2d1.h>
+//#include<map>
+//#include<TlHelp32.h>
+//using namespace std;
+//struct ms
+//{
+//	string id;
+//	int value;
+//};
+//vector<ms>  ms1;
+//map<string, int> map1;
+//DWORD GetProcessIdFromName(const wchar_t* name)
+//{
+//	HANDLE  hsnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+//	if (hsnapshot == INVALID_HANDLE_VALUE)
+//	{
+//		//printf("CreateToolhelp32Snapshot Error!\n");
+//		return 0;
+//	}
+//
+//	PROCESSENTRY32 pe;
+//	pe.dwSize = sizeof(PROCESSENTRY32);
+//
+//	int flag = Process32First(hsnapshot, &pe);
+//
+//	while (flag != 0)
+//	{
+//		if (lstrcmpW(pe.szExeFile, name) == 0)
+//		{
+//			return pe.th32ProcessID;
+//		}
+//		flag = Process32Next(hsnapshot, &pe);
+//	}
+//
+//	CloseHandle(hsnapshot);
+//
+//	return 0;
+//}
+//int main()
+//{
+//	
+//	//char temp[20] = "";
+//	//for (size_t i = 0; i < 10000; i++)
+//	//{
+//	//	sprintf_s(temp, "id%i\0", i);
+//	//	ms1.push_back({ temp,(int)i + 1 });
+//	//	map1.insert({ temp,(int)i + 1 });
+//	//}
+//	//DWORD t1 = GetTickCount64();
+//	//string ftemp = "id9999";
+//	//for (size_t i = 0; i < 10000; i++)
+//	//{
+//	//	for (size_t j = 0; j < ms1.size(); j++)
+//	//	{
+//	//		if (0 == ms1[j].id.compare(ftemp))
+//	//		{
+//	//			//printf("%d\n", ms1[j].value);
+//	//		}
+//	//	}
+//	//}
+//	//DWORD t2 = GetTickCount64();
+//	//printf("  %d ms\n", t2 - t1);
+//	//t1 = GetTickCount64();
+//	//for (size_t j = 0; j < 10000; j++)
+//	//{
+//	//	for (map<string, int>::iterator i = map1.begin(); i != map1.end(); i++)
+//	//	{
+//	//		if (0==i->first.compare(ftemp))
+//	//		{
+//	//			//printf("%d\n", i->second);
+//	//		}
+//	//	}
+//	//}
+//	//t2 = GetTickCount64();
+//	//printf(" %d ms\n",t2-t1);
+//	//system("pause");
+//	STARTUPINFO si;
+//	PROCESS_INFORMATION pi;
+//	ZeroMemory(&si, sizeof(si));
+//	ZeroMemory(&pi, sizeof(pi));
+//	WCHAR topen[260] = TEXT(".\\nodejs\\node.exe .\\UnblockNeteaseMusic-master\\app.js");
+//	printf("请进入网易云音乐的 设置->工具里面设置代理  服务器设置为 127.0.0.1  端口为 8080  后任意键继续\n");
+//	//TerminateProcess();
+//	WinExec("taskkill /f /im node.exe", SW_HIDE);
+//	system("pause");
+//	if (CreateProcess(0, topen, 0, 0, false, CREATE_NO_WINDOW, 0, 0, &si, &pi) != 0)
+//	{
+//		printf("运行成功\n");
+//		system("pause");
+//	}
+//	else
+//	{
+//		printf("失败!\n");
+//		system("pause");
+//	}
+//
+//
+//	return 0;
+//}
+#include"标头.h"
+#include"FrameBufferObject.h"
+#include"Lighting.h"
+#include"Polygon.h"
 using namespace std;
-struct ms
+LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+static HWND hWnd = 0;
+static HDC g_hdc = 0;
+static HGLRC g_glrc = 0;
+
+std::vector<m_Polygon*> polygons;
+std::vector<Light*> lights;
+FrameBufferObject* fbo;
+bool InitWindow(HINSTANCE hInstance)
 {
-	string id;
-	int value;
-};
-vector<ms>  ms1;
-map<string, int> map1;
-int main()
+	WNDCLASSEX wnd = { 0 };
+	wnd.cbClsExtra = 0; wnd.cbSize = sizeof(WNDCLASSEX);
+	wnd.style = CS_VREDRAW | CS_HREDRAW;
+	wnd.lpfnWndProc = WndProc;
+	wnd.cbWndExtra = 0;
+	wnd.hInstance = hInstance;
+	wnd.hIcon = 0; wnd.hCursor = LoadCursor(0, IDC_ARROW);
+	wnd.hbrBackground = 0;
+	wnd.lpszMenuName = 0;
+	wnd.lpszClassName = L"mogl";
+	if (!RegisterClassExW(&wnd))
+		return false;
+	hWnd = CreateWindow(L"mogl", L"", WS_POPUP, 0, 0, 1024, 768, 0, 0, hInstance, 0);
+	if (hWnd == nullptr)
+		return false;
+
+	return true;
+}
+
+void InitGL()
 {
+	g_hdc = GetDC(hWnd);
+	PIXELFORMATDESCRIPTOR pfd;
+	int  iFormat;
+
+	ZeroMemory(&pfd, sizeof(PIXELFORMATDESCRIPTOR));
+	pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
+	pfd.nVersion = 1;
+	pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+	pfd.iPixelType = PFD_TYPE_RGBA;
+	pfd.cColorBits = 24;
+	pfd.cDepthBits = 16;
+	pfd.iLayerType = PFD_MAIN_PLANE;
+
+	iFormat = ChoosePixelFormat(g_hdc, &pfd);
+	SetPixelFormat(g_hdc, iFormat, &pfd);
+	g_glrc = wglCreateContext(g_hdc);
+	wglMakeCurrent(g_hdc, g_glrc);
+	glewInit();
 	
-	char temp[20] = "";
-	for (size_t i = 0; i < 10000; i++)
-	{
-		sprintf_s(temp, "id%i\0", i);
-		ms1.push_back({ temp,(int)i + 1 });
-		map1.insert({ temp,(int)i + 1 });
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+	//resizeWindow
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_BLEND);
+
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glClearColor(0.0f,0.0f,0.0f,1.0f);
+	glViewport(0,0,1024,768);
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0,1024,768,0,-1.0f,1.0f);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	glMatrixMode(GL_TEXTURE);
+	glLoadIdentity();
+
+	glDisable(GL_CULL_FACE);
+
+	m_Polygon* poly = new m_Polygon(5);
+	
+	poly = new m_Polygon(3);
+	poly->setVertex(0, vector2f(0, 768));
+	poly->setVertex(1, vector2f(1024,0 ));
+	poly->setVertex(2, vector2f(0,0));
+	//poly->setVertex(3, vector2f(450, 350));
+	polygons.push_back(poly);
+
+	//Create the lighting alpha texture
+	//http://www.opengl.org/wiki/Framebuffer_Object_Examples
+
+	fbo = new FrameBufferObject(1024, 768, 2);
+
+	Light* l = new Light(vector2f(800, 600), 400, .6f);
+	lights.push_back(l);
+
+}
+void Clean()
+{
+	delete fbo;
+	wglMakeCurrent(0, 0);
+	wglDeleteContext(g_glrc);
+	ReleaseDC(hWnd, g_hdc);
+}
+
+void drawLighting() {
+	//Set up the main fbo
+	fbo->bindFrameBuffer(GL_FRAMEBUFFER_EXT);
+	glPushAttrib(GL_VIEWPORT_BIT | GL_COLOR_BUFFER_BIT);
+
+	glClearColor(0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glViewport(0, 0, fbo->width, fbo->height);
+
+	//Draw each light to a secondary texture, then draw that one to the primary
+	for (int i = 0; i < lights.size(); i++) {
+		//Draw to secondary texture
+		fbo->setRenderToTexture(1);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glBlendEquation(GL_FUNC_ADD);
+		glBlendFunc(GL_SRC_ALPHA, GL_ZERO);
+
+		//Draw the light alpha
+		glColorMask(false, false, false, true);
+		lights[i]->drawAlpha(&polygons);
+
+		//Draw the light color
+		glColorMask(true, true, true, false);
+		lights[i]->draw(&polygons);
+
+		glColorMask(true, true, true, true);
+
+		//Draw second texture to the first one
+		fbo->setRenderToTexture(0);
+		glBlendEquation(GL_FUNC_ADD);
+		glBlendFunc(GL_ONE, GL_ONE);
+		fbo->draw(1);
+	}
+	fbo->unsetRenderToTexture();
+	fbo->unbindFrameBuffer(GL_FRAMEBUFFER_EXT);
+	glPopAttrib();
+}
+
+void draw() {
+	drawLighting();
+
+	//Draw the scene objects
+	fbo->bindFrameBuffer(GL_FRAMEBUFFER_EXT);
+	fbo->setRenderToTexture(0);
+	glPushAttrib(GL_COLOR_BUFFER_BIT);
+	glBlendFunc(GL_DST_COLOR, GL_DST_ALPHA); //Blends the scene objects very nicely with the color of the light
+
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+	for (int i = 0; i < polygons.size(); i++) {
+		float cols[] = { 1.0f, 0.0f, .5f, 1.0f,
+						 1.0f, 1.0f, .5f, 1.0f,
+						 0.0f, 1.0f, 1.0f, 1.0f,
+						 1.0f, 0.0f, .5f, 1.0f,
+						 1.0f, 0.0f, .5f, 1.0f };
+		polygons[i]->draw(cols);
 	}
 
-	DWORD t1 = GetTickCount64();
-	string ftemp = "id9999";
-	for (size_t i = 0; i < 10000; i++)
+	glPopAttrib();
+	fbo->unbindFrameBuffer(GL_FRAMEBUFFER_EXT);
+
+	fbo->draw(0);
+}
+void Render()
+{
+	glLoadIdentity();
+	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+	draw();
+	/*glBegin(GL_TRIANGLES);
+	glVertex2f(0.0f,1.0f);
+	glColor4f(1.0f,0.0f,0.0f,1.0f);
+	glVertex2f(1.0,0.0);
+	glColor4f(0.0,1.0,0.0,1.0);
+	glVertex2f(-1,0.0);
+	glColor4f(0.0,0.0,1.0,1.0);
+	glEnd();*/
+	SwapBuffers(g_hdc);
+}
+
+int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE PrehInstance, _In_ LPWSTR nCmdLine, _In_ int nCmdShow)
+{	
+	MSG msg = { 0 };
+	if (!InitWindow(hInstance))
+		return -1;
+	ShowWindow(hWnd, SW_SHOWNORMAL);
+	
+	InitGL();
+
+	while (msg.message != WM_QUIT)
 	{
-		for (size_t j = 0; j < ms1.size(); j++)
+		if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
 		{
-			if (0 == ms1[j].id.compare(ftemp))
-			{
-				//printf("%d\n", ms1[j].value);
-			}
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+		else
+		{
+			Render();
+			Sleep(16);
 		}
 	}
-	DWORD t2 = GetTickCount64();
-	printf("  %d ms\n", t2 - t1);
-	t1 = GetTickCount64();
-	for (size_t j = 0; j < 10000; j++)
-	{
-		for (map<string, int>::iterator i = map1.begin(); i != map1.end(); i++)
-		{
-			if (0==i->first.compare(ftemp))
-			{
-				//printf("%d\n", i->second);
-			}
-		}
-	}
-	t2 = GetTickCount64();
-	printf(" %d ms\n",t2-t1);
-	system("pause");
+	Clean();
 	return 0;
+}
+LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	m_Polygon* poly=nullptr;
+	switch (message)
+	{
+	case WM_LBUTTONDOWN:
+		lights.push_back(new Light({(float)LOWORD(lParam),(float)HIWORD(lParam)},500.0f,0.4f));
+		break;
+	case WM_RBUTTONDOWN:
+		poly = new m_Polygon(4);
+		poly->setVertex(0,vector2f((float)LOWORD(lParam), (float)HIWORD(lParam)));
+		poly->setVertex(1,vector2f((float)LOWORD(lParam)+20.0f, (float)HIWORD(lParam)));
+		poly->setVertex(2,vector2f((float)LOWORD(lParam), (float)HIWORD(lParam)+20.0f));
+		poly->setVertex(3,vector2f((float)LOWORD(lParam)+20.0f, (float)HIWORD(lParam)+20.0f));
+		
+		polygons.push_back(poly);
+		break;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		break;
+	default:
+		return DefWindowProcW(hwnd, message, wParam, lParam);
+	}
 }

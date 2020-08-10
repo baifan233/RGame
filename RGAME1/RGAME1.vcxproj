@@ -72,15 +72,20 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <IntDir>$(SolutionDir)$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <IntDir>$(SolutionDir)$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <IntDir>$(SolutionDir)$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -104,6 +109,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -150,37 +157,49 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="framework.h" />
-    <ClInclude Include="Game.h" />
-    <ClInclude Include="GameLogRecorder.h" />
-    <ClInclude Include="GDevices.h" />
-    <ClInclude Include="Person.h" />
-    <ClInclude Include="Player.h" />
-    <ClInclude Include="Resource.h" />
-    <ClInclude Include="ResourceManager.h" />
-    <ClInclude Include="RObject.h" />
-    <ClInclude Include="targetver.h" />
-    <ClInclude Include="UI.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="World.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
-    </ClInclude>
+    <ClInclude Include="core\framework.h" />
+    <ClInclude Include="core\GameLogRecorder.h" />
+    <ClInclude Include="core\GDevices.h" />
+    <ClInclude Include="core\Resource.h" />
+    <ClInclude Include="core\targetver.h" />
+    <ClInclude Include="core\UI.h" />
+    <ClInclude Include="game\Game.h" />
+    <ClInclude Include="game\Person.h" />
+    <ClInclude Include="game\Player.h" />
+    <ClInclude Include="game\ResourceManager.h" />
+    <ClInclude Include="game\RObject.h" />
+    <ClInclude Include="game\World.h" />
+    <ClInclude Include="gldemo\background.h" />
+    <ClInclude Include="gldemo\demoscene.h" />
+    <ClInclude Include="gldemo\emitter.h" />
+    <ClInclude Include="gldemo\i_displayobject.h" />
+    <ClInclude Include="gldemo\rendercontext.h" />
+    <ClInclude Include="gldemo\renderer.h" />
+    <ClInclude Include="gldemo\scene.h" />
+    <ClInclude Include="gldemo\shader.h" />
+    <ClInclude Include="gldemo\sprite.h" />
+    <ClInclude Include="gldemo\targetver.h" />
+    <ClInclude Include="gldemo\texture.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Game.cpp" />
-    <ClCompile Include="GDevices.cpp" />
-    <ClCompile Include="Person.cpp" />
-    <ClCompile Include="Player.cpp" />
-    <ClCompile Include="ResourceManager.cpp" />
+    <ClCompile Include="core\GDevices.cpp" />
+    <ClCompile Include="core\UI.cpp" />
+    <ClCompile Include="game\Game.cpp" />
+    <ClCompile Include="game\Person.cpp" />
+    <ClCompile Include="game\Player.cpp" />
+    <ClCompile Include="game\ResourceManager.cpp" />
+    <ClCompile Include="game\RObject.cpp" />
+    <ClCompile Include="game\World.cpp" />
+    <ClCompile Include="gldemo\background.cpp" />
+    <ClCompile Include="gldemo\demoscene.cpp" />
+    <ClCompile Include="gldemo\emitter.cpp" />
+    <ClCompile Include="gldemo\rendercontext.cpp" />
+    <ClCompile Include="gldemo\renderer.cpp" />
+    <ClCompile Include="gldemo\scene.cpp" />
+    <ClCompile Include="gldemo\shader.cpp" />
+    <ClCompile Include="gldemo\sprite.cpp" />
+    <ClCompile Include="gldemo\texture.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="RObject.cpp" />
-    <ClCompile Include="UI.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="RGAME1.rc" />

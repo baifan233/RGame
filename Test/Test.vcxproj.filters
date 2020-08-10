@@ -21,9 +21,36 @@
     <ClCompile Include="System.cpp">
       <Filter>头文件</Filter>
     </ClCompile>
+    <ClCompile Include="FrameBufferObject.cpp">
+      <Filter>头文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Lighting.cpp">
+      <Filter>头文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Polygon.cpp">
+      <Filter>头文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Example.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="System.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="FrameBufferObject.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Lighting.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Polygon.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector2.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="标头.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

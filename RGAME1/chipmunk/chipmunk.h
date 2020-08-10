@@ -109,12 +109,12 @@ typedef struct cpContactPointSet cpContactPointSet;
 typedef struct cpArbiter cpArbiter;
 
 
-typedef enum cpShapeType{
+enum class cpShapeType{
 	CP_CIRCLE_SHAPE,
 	CP_SEGMENT_SHAPE,
 	CP_POLY_SHAPE,
 	CP_NUM_SHAPES
-} cpShapeType;
+};
 
 typedef struct cpSpace cpSpace;
 
